@@ -1,0 +1,486 @@
+<html charset="utf-8">
+
+<!-- Author  : Daniel.Muller@ec-lyon.fr -->
+<!-- Licence : MIT -->
+<!-- Usage   : just play with it  -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.0/angular.min.js"></script>
+<!--script src="angular.js"></script-->
+<script>
+angular.module('App', [])
+  .controller('Controller', [ '$scope', '$window', '$document', function($scope) {
+    var properties = ['title', 'bgcolor', 'graphcolor', 'curvecolor', 'titlecolor', 'labelcolor',
+          'ndata', 'nlevels', 'currentLabelModel']
+    ;
+
+    $scope.PI = Math.PI;
+    $scope.cos = Math.cos;
+    $scope.sin = Math.sin;
+    $scope.scale_x = 1;
+    $scope.scale_y = 1;
+    $scope.title = 'Graphe Radar';
+    $scope.visible_handles = false;
+    $scope.data = [];
+    $scope.ndata = 0;
+    $scope.nlevels = 0;
+    $scope.labelpos = [];
+
+    $scope.range = function(min, max, step){
+      var input = [], i; step = step || 1;
+      for (i = min; i <= max; i += step) input.push(i);
+      return input;
+    };
+
+    $scope.transform = function() {
+      return 'translate(500,575) scale('+$scope.scale_x+','+$scope.scale_y+')';
+    };
+
+    $scope.label = function(n) {
+      return $scope['label_'+n];
+    };
+    $scope.label_x = function(n) {
+      return ($scope.labelpos[n] && $scope.labelpos[n].x) || 0;
+    }
+    $scope.label_y = function(n) {
+      return (! $scope.labelpos[n] || $scope.labelpos[n].y == undefined) ? 20 : $scope.labelpos[n].y;
+    }
+
+    $scope.edit = function(t,event) {
+      var label_input = document.getElementById('label');
+
+      if ( event ) $scope[t] = event.target.textContent;
+      $scope.currentLabelModel = t;
+      $scope.currentLabel = $scope[t];
+      label_input.focus();
+    };
+    $scope.edit('title');
+
+    $scope.setdata = function(n,l) {
+      $scope.data[n] = l;
+    };
+
+    $scope.show_handles = function() {
+      $scope.visible_handles = true;
+      //$scope.$digest();
+    }
+    $scope.hide_handles = function() {
+      $scope.visible_handles = false;
+      //$scope.$digest();
+    }
+
+    $scope.save = function(event) {
+      var n, l = $scope.ndata
+        , labels = document.getElementsByClassName('label')
+        , uri = 'data:text/csv;base64,'
+        , str = '', filename
+        , dx, dy
+      ;
+      
+      str += ['property','value'].join(";")+"\r\n";
+      angular.forEach(properties, function (property) {
+        str += [property,$scope[property]].join(";")+"\r\n";
+      });
+      str += "\r\n";
+      str += ['index','label','data','label_x','label_y'].join(";")+"\r\n";
+      for ( n=0; n < l ; n++ ) {
+        dx = labels[n].getAttribute('dx') || 0;
+        dy = labels[n].getAttribute('dy') || 0;
+        str += [n, $scope['label_'+n], $scope.data[n], dx, dy].join(";")+"\r\n";
+      }
+      uri += btoa(str);
+      event.target.href = uri;
+
+      filename = prompt('Exported filename',$scope.filename||'radar.csv');
+      if ( ! filename ) { 
+        event.preventDefault();
+        return false;
+      }
+      $scope.filename = filename;
+      event.target.download = $scope.filename;
+    }
+
+    $scope.export = function(event) {
+      var code = decorate(cleanup($scope.svg.outerHTML))
+        , uri = 'data:text/svg+xml;base64,'
+        , filename
+      ;
+
+      code = setViewBox(code);
+
+      uri += btoa(code);
+      event.target.href = uri;
+
+      filename = prompt('SVG filename',$scope.filename ? $scope.filename.replace(/\.csv$/, '.svg') : 'radar.svg');
+      if ( ! filename ) { 
+        event.preventDefault();
+        return false;
+      }
+      event.target.download = filename;
+    }
+
+    function setViewBox(code) {
+      var svg = $scope.svg
+        , viewBox = svg.viewBox.baseVal
+        , text_elements = svg.getElementsByClassName('label')
+        , xmin = -(viewBox.x + viewBox.width)/2
+        , xmax =  (viewBox.x + viewBox.width)/2
+        , ymin = -(viewBox.y + viewBox.height)/2
+        , ymax =  (viewBox.y + viewBox.height)/2
+        , x, y, width, height
+      ;
+      angular.forEach(text_elements, function(t) {
+        var box = t.getBBox();
+        xmin = Math.min(xmin,box.x);
+        xmax = Math.max(xmax,box.x + box.width);
+        ymin = Math.min(ymin,box.y);
+        ymax = Math.max(ymax,box.y + box.height);
+      });
+      x = xmin - 20;
+      width = xmax - xmin + 40;
+      y = ymin - 20;
+      height = ymax - ymin + 40;
+
+      // svg viewBox
+      code = code.replace(/viewBox=".*?"/,'viewBox="'+x+' '+y+' '+width+' '+height+'"');
+
+      // move background
+      code = code.replace(/<rect[^>]*?id="background"[^>]*?>/,
+        '<rect id="background" x="'+x+'" y="'+y+'" width="'+width+'" height="'+height+'">');
+
+      // move title
+      code = code.replace(/<text[^>]*?id="title"[^>]*?>([^<]*)<\/text>/,
+        '<text id="title" x="0" y="'+(ymin+35)+'">$1</text>');
+
+      return code;
+    }
+
+    function decorate(code) {
+      var css = '.label { font-size: 35px; } '+
+        '#background { stroke: none; fill: '+$scope.bgcolor+';}'+
+        '#title { font-size: 45px; stroke: '+$scope.titlecolor+'; fill: '+$scope.titlecolor+';}'+
+        'text { font-size: 20px; text-anchor: middle; font-family: Calibri, sans-serif; letter-spacing: 0.5em; }'
+      ;
+
+      // svg namespace uri
+      code = code.replace(/<svg/,'<svg xmlns="http://www.w3.org/2000/svg"');
+
+      // preserveAspectRatio
+      code = code.replace(/preserveAspectRatio=".*?"/,'preserveAspectRation="xMidYMid"');
+      //code = code.replace(/<g[^>]*id="graph"[^>]*>/,'<g id="graph" transform="translate(500,575)">');
+      code = code.replace(/<g[^>]*id="graph"[^>]*>/,'<g id="graph">');
+
+      // add some css
+      code = code.replace(/<rect([^>]*)id="background"/,'<defs><style>'+css+'</style></defs><rect$1id="background"');
+
+      // utf-8 encode
+      code = unescape(encodeURIComponent(code));
+
+      return code;
+    }
+
+    function cleanup(code) {
+      // remove comments
+      code = code.replace(/<!--(.|\n)*?-->/g,'');
+
+      // remove ng-attributes
+      code = code.replace(/ ?ng-([a-z0-9\-])+?=".*?"/g,'');
+
+      // remove custom directives
+      code = code.replace(/draggable=""/g,'');
+
+      // remove class="ng-scope"
+      code = code.replace(/ class="ng-scope"/g,'');
+      code = code.replace(/class="ng-scope (.+?)"/g,'class="$1"');
+      code = code.replace(/class="(.+?) ng-scope"/g,'class="$1"');
+
+      // remove class="ng-binding"
+      code = code.replace(/ class="ng-binding"/g,'');
+      code = code.replace(/class="ng-binding (.+?)"/g,'class="$1"');
+      code = code.replace(/class="(.+?) ng-binding"/g,'class="$1"');
+
+      // remove hidden stuff
+      code = code.replace(/<circle[^>]*class="hidden"(.|\n)*?\/circle>/g,'');
+
+      // other unneeded stuff
+      code = code.replace(/ style="cursor: pointer;"/g,'');
+      code = code.replace(/ style="visibility: visible;"/g,'');
+      code = code.replace(/ pointer-events="all"/g,'');
+
+      // strip spaces
+      code = code.replace(/>\s*</g,">\n<");
+
+      return code;
+    }
+
+    // read file
+    $scope.$watch('fileread', function(value) {
+      var n, l = ($scope.data && $scope.data.length) ? $scope.data.length : -1
+        , data, info, reading_properties
+      ;
+      if ( value) {
+        data = atob($scope.fileread.split(',')[1]).split("\r\n");
+        for ( n=0; n < data.length; n++ ) {
+          info = data[n].split(';');
+          if ( n == 0 ) {
+            reading_properties = true;
+          }
+          else if ( reading_properties ) {
+            if ( ! info[0] ) {
+              reading_properties = false;
+            }
+            else {
+              $scope[info[0]] = info[1];
+            }
+          }
+          else {
+            $scope['label_'+info[0]] = info[1];
+            $scope.data[info[0]] = info[2];
+            $scope.labelpos[info[0]] = {x: info[3], y: info[4]};
+          }
+        }
+        $scope.fileread = '';
+        $scope.currentLabel = $scope[$scope.currentLabelModel];
+        for ( n = $scope.ndata; n < l ; n++ ) {
+          delete $scope['label_'+n];
+          delete $scope.data[n];
+          delete $scope.labelpos[n];
+        }
+        console.log($scope);
+      }
+    });
+
+    $scope.$watch('currentLabel', function(value,old) {
+      if ( value ) $scope[$scope.currentLabelModel] = value;
+    });
+
+    $scope.$watch('ndata', function(value) {
+      var n, l = ($scope.data && $scope.data.length) ? $scope.data.length : -1;
+      if ( value ) {
+        for ( n=0; n < value; n++ ) {
+          if ( ! $scope['label_'+n] ) $scope['label_'+n] = 'label '+(n+1);
+          if ( n > l ) $scope.data[n] = 0;
+        }
+        for ( ; n < l ; n++ ) {
+          delete $scope['label_'+n];
+          delete $scope.data[n];
+          delete $scope.labelpos[n];
+        }
+      }
+      else {
+        for ( n=0; n < l; n++ ) {
+          delete $scope['label_'+n];
+        }
+        $scope.data = null;
+        $scope.labelpos = null;
+      }
+    });
+
+    $scope.$watch('nlevels', function(value) {
+      var n, l = $scope.data ? $scope.data.length : 0;
+      if ( value ) {
+        for ( n=0; n < l; n++ ) {
+          $scope.data[n] = Math.min($scope.nlevels,$scope.data[n]);
+        }
+      }
+    });
+
+    addEventListener('load',function(e) {
+      $scope.svg = document.getElementById('main');
+      resize(); 
+      document.getElementById('graph').style.visibility = "visible";
+    });
+    addEventListener('resize',resize);
+
+    function resize() {
+      var style = getComputedStyle($scope.svg)
+        , width = parseFloat(style.width)
+        , height = parseFloat(style.height)
+      ;
+      if ( width > height ) {
+        $scope.scale_y = 1;
+        $scope.scale_x = height / width;
+      }
+      else {
+        $scope.scale_x = 1;
+        $scope.scale_y = width / height;
+      }
+      $scope.$digest();
+    }
+
+  }]) // .controller
+  .directive('draggable', function($window, $document) {
+    return function(scope, element, attrs) { // link:
+      var svg = element[0].ownerSVGElement
+        , startX = 0 , startY = 0 , x = 0 , y = 0
+        , startLeft, startTop, scaleX, scaleY
+        , moving
+      ;
+      element.css({ cursor: 'pointer' });
+
+      element.on('mousedown', function(event) {
+        var style = $window.getComputedStyle(svg)
+          , width = parseFloat(style.width)
+          , height = parseFloat(style.height)
+          , viewport_w = svg.viewBox.baseVal.width
+          , viewport_h = svg.viewBox.baseVal.height
+
+        // Prevent default dragging of selected content
+        event.preventDefault();
+        moving = false;
+
+        // let position be relative to initial one
+        startLeft = parseFloat(element[0].getAttribute('dx')) || 0;
+        startTop = parseFloat(element[0].getAttribute('dy')) || 0;
+
+       // compute scale factors (not generic)
+       // pour être générique il faut calculer le facteur de zoom en remontant
+       // la chaîne des parents, et en tenant compte des rotations... :-(
+       scaleX = viewport_w / width / scope.scale_x;
+       scaleY = viewport_h / height / scope.scale_y;
+       
+        // let dragging be relative to mousedown position
+        startX = event.pageX;
+        startY = event.pageY;
+        $document.on('mousemove', mousemove);
+        $document.on('mouseup', mouseup);
+      });
+
+      function mousemove(event) {
+        if ( ! moving ) {
+          moving = true;
+          element.css({cursor: 'move'});
+        }
+        if ( event.clientY > 0 && (!$window.innerHeight || event.clientY < $window.innerHeight)) {
+          y = event.pageY - startY;
+        }
+        if ( event.clientX > 0 && (!$window.innerWidth || event.clientX < $window.innerWidth)) {
+          x = event.pageX - startX;
+        }
+        element[0].setAttribute('dx',startLeft + x * scaleX);
+        element[0].setAttribute('dy',startTop + y * scaleY);
+      }
+
+      function mouseup() {
+        // not generic
+        var n = parseInt(element[0].id.substring('label_'.length),10);
+        scope.labelpos[n] = {x: element[0].getAttribute('dx'), y: element[0].getAttribute('dy')};
+
+        $document.unbind('mousemove', mousemove);
+        $document.unbind('mouseup', mouseup);
+        moving = false;
+        element.css({cursor: 'pointer'});
+      }
+
+    }; // return function link
+  }) // .directive draggable
+
+  // cf. http://stackoverflow.com/questions/17063000/ng-model-for-input-type-file
+  .directive("fileread", function () {
+    return {
+      link: function (scope, element, attributes) {
+        element.bind("change", function (changeEvent) {
+          var reader = new FileReader();
+          reader.onload = function (loadEvent) {
+            scope.$apply(function () {
+              scope.fileread = loadEvent.target.result;
+              scope.filename = element[0].value;
+            });
+          }
+          reader.readAsDataURL(changeEvent.target.files[0]);
+        });
+      }
+    }
+  }); // .directive fileread
+
+</script>
+
+<style type="text/css">
+body { margin: 0; }
+pre { padding: 5px 10px; float: left; margin: 0; line-height: 1.55em; }
+svg { position: absolute; width: 100%; bottom: 0; top: 5.5em; height: calc(100% - 4.5em); display: block; }
+text { font-size: 20px; text-anchor: middle; font-family: Calibri, sans-serif; }
+input { width: 6em;  padding: 0 0.5em;  font-family: monospace; height:1.33em; }
+line { fill: none; }
+#title { font-size: 45px; }
+.label { font-size: 35px; cursor: pointer; }
+#label { width: 19.5em; position: absolute; }
+circle { cursor: pointer; stroke: none; fill: none; }
+circle.visible { visiblity: visible; }
+circle.hidden { visibility: hidden; }
+#panel { min-width: 785px; position: relative; }
+#graph { visibility: hidden; }
+#button_panel { position: relative; line-height: 1.55em; }
+input[type='file'] { position: absolute; left: 0; filter:alpha(opacity: 0); opacity: 0; cursor: pointer; width: 8em;}
+input[type='range'] { padding: 0; border: none; margin: 0; height: 1em; position: relative; top: 3px;}
+a, #open_file { color: blue; text-decoration: none; }
+input:hover + #open_file, #save_file:hover, #export:hover { color: red; }
+</style>
+
+<body ng-app="App" ng-controller="Controller">
+
+<div id="panel">
+<pre>
+background color : <input ng-model="bgcolor" ng-init="bgcolor='#f0f0ea'" type="color"></input>
+     graph color : <input ng-model="graphcolor" ng-init="graphcolor='#000000'" type="color"></input>
+     curve color : <input ng-model="curvecolor" ng-init="curvecolor='#000000'" type="color"></input>
+</pre>
+<pre>
+  title color : <input ng-model="titlecolor" ng-init="titlecolor='#000000'" type="color"></input>
+  label color : <input ng-model="labelcolor" ng-init="labelcolor='#000000'" type="color"></input>
+current label : <input id="label" ng-model="currentLabel"></input>
+</pre>
+<pre>
+sectors : <input ng-model="ndata" ng-init="ndata=5" type="range" min="3" max="36"></input>
+ levels : <input ng-model="nlevels" ng-init="nlevels=5" type="range" min="3" max="10"></input>
+</pre>
+<pre id="button_panel">
+<input type="file" fileread="xx" ></input><span id="open_file">open file ...</span>
+<a id="save_file" ng-click="save($event)" href="">save file ...</a>
+<a id="export" ng-click="export($event)" href="">export svg...</a>
+</pre>
+</div>
+
+<svg  id="main" viewBox="0 0 1000 1050" pointer-events="all" preserveAspectRatio="none">
+
+ <rect id="background" x="0" y="0" width="1000" height="1050" stroke="none" ng-attr-fill="{{bgcolor}}"/>
+ <g id="graph" ng-attr-transform="{{transform()}}">
+  <g ng-repeat="n in range(0,ndata-1)">
+   <line x1="0" y1="0" stroke="{{graphcolor}}"
+     ng-attr-x2="{{400*cos(-PI/2+n*2*PI/ndata)}}"
+     ng-attr-y2="{{400*sin(-PI/2+n*2*PI/ndata)}}" />
+   <line ng-repeat="l in range(1,nlevels)" stroke="{{graphcolor}}"
+     ng-attr-x1="{{(l*400/nlevels)*cos(-PI/2+n*2*PI/ndata)}}"
+     ng-attr-y1="{{(l*400/nlevels)*sin(-PI/2+n*2*PI/ndata)}}"
+     ng-attr-x2="{{(l*400/nlevels)*cos(-PI/2+(n+1)*2*PI/ndata)}}"
+     ng-attr-y2="{{(l*400/nlevels)*sin(-PI/2+(n+1)*2*PI/ndata)}}" />
+   <line stroke="{{curvecolor}}" stroke-width="3"
+     ng-attr-x1="{{(data[n]*400/nlevels)*cos(-PI/2+n*2*PI/ndata)}}"
+     ng-attr-y1="{{(data[n]*400/nlevels)*sin(-PI/2+n*2*PI/ndata)}}"
+     ng-attr-x2="{{(data[(n==ndata-1)?0:n+1]*400/nlevels)*cos(-PI/2+(n+1)*2*PI/ndata)}}"
+     ng-attr-y2="{{(data[(n==ndata-1)?0:n+1]*400/nlevels)*sin(-PI/2+(n+1)*2*PI/ndata)}}" />
+
+  </g>
+  <g ng-repeat="n in range(0,ndata-1)">
+   <circle ng-repeat="l in range(1,nlevels)" r="10" style="fill: {{bgcolor}}"
+     ng-class="[visible_handles?'visible':'hidden']"
+     ng-attr-cx="{{(l*400/nlevels)*cos(-PI/2+n*2*PI/ndata)}}"
+     ng-attr-cy="{{(l*400/nlevels)*sin(-PI/2+n*2*PI/ndata)}}"
+     ng-click="setdata(n,l)" ng-mouseover="show_handles()" ng-mouseout="hide_handles()"/>
+   <circle r="10" style="fill: {{bgcolor}}"
+     ng-class="[visible_handles?'visible':'hidden']"
+     ng-attr-cx="{{(100/nlevels)*cos(-PI/2+n*2*PI/ndata)}}"
+     ng-attr-cy="{{(100/nlevels)*sin(-PI/2+n*2*PI/ndata)}}"
+     ng-click="setdata(n,0)" ng-mouseover="show_handles()" ng-mouseout="hide_handles()"/>
+   <text class="label" id="{{'label_'+n}}" fill="{{labelcolor}}" draggable
+     ng-attr-dx="{{label_x(n)}}" ng-attr-dy="{{label_y(n)}}"
+     ng-attr-x="{{450*cos(-PI/2+n*2*PI/ndata)}}"
+     ng-attr-y="{{450*sin(-PI/2+n*2*PI/ndata)}}"
+     ng-click="edit('label_'+n,$event)" >{{label(n)}}</text>
+  </g>
+
+ </g>
+ <text id="title" x="500" y="70"
+   fill="{{titlecolor}}" stroke="{{titlecolor}}" ng-click="edit('title',$event)">{{title}}</text>
+
+</svg>
+</body>
