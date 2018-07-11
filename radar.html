@@ -75,7 +75,7 @@ angular.module('App', [])
         , str = '', filename
         , dx, dy
       ;
-      
+
       str += ['property','value'].join(";")+"\r\n";
       angular.forEach(properties, function (property) {
         str += [property,$scope[property]].join(";")+"\r\n";
@@ -91,7 +91,7 @@ angular.module('App', [])
       event.target.href = uri;
 
       filename = prompt('Exported filename',$scope.filename||'radar.csv');
-      if ( ! filename ) { 
+      if ( ! filename ) {
         event.preventDefault();
         return false;
       }
@@ -111,7 +111,7 @@ angular.module('App', [])
       event.target.href = uri;
 
       filename = prompt('SVG filename',$scope.filename ? $scope.filename.replace(/\.csv$/, '.svg') : 'radar.svg');
-      if ( ! filename ) { 
+      if ( ! filename ) {
         event.preventDefault();
         return false;
       }
@@ -286,7 +286,7 @@ angular.module('App', [])
 
     addEventListener('load',function(e) {
       $scope.svg = document.getElementById('main');
-      resize(); 
+      resize();
       document.getElementById('graph').style.visibility = "visible";
     });
     addEventListener('resize',resize);
@@ -337,7 +337,7 @@ angular.module('App', [])
        // la chaîne des parents, et en tenant compte des rotations... :-(
        scaleX = viewport_w / width / scope.scale_x;
        scaleY = viewport_h / height / scope.scale_y;
-       
+
         // let dragging be relative to mousedown position
         startX = event.pageX;
         startY = event.pageY;
