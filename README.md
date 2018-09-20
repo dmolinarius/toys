@@ -17,3 +17,8 @@ A directory holding small javascript webapps within single html files.
   and exported in SVG format.
   Just play with it and have fun !
   
+* [telecran.html](http://dmolinarius.github.io/toys/telecran.html) - A toy popular in the sixties.
+
+  Known as [télécran](https://fr.wikipedia.org/wiki/%C3%89cran_magique) in french or [Etch A Sketch](https://en.wikipedia.org/wiki/Etch_A_Sketch) in english.
+  Draw using keypad arrows, or by clicking on the left (up/down) or right (left/right) black buttons.
+  To erase, turn it upside down and shake. Sorry, I'm joking. Please click on label.
