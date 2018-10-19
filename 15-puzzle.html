@@ -137,6 +137,7 @@ html, body {
 <div id="congrat">Congratulations,<br>You won !</div>
 
 <script>
+// ultimately holds image data url
 let bgimage = '';
 
 // number of draws
@@ -270,7 +271,7 @@ function neighbours(cell) {
   ];
 }
 
-// load image to get acces to dimensions
+// image reference, not itself displayed
 let img = document.createElement('img');
 img.src = bgimage;
 img.onload = function() {
@@ -280,6 +281,7 @@ img.onload = function() {
   display();
 };
 
+// update display afer image load
 function update() {
   let css = exif2css(img.orientation);
   cells.forEach( cell => {
@@ -292,6 +294,8 @@ function update() {
     cell.img.style['transform-origin'] = css['transform-origin'];
   });
 }
+
+// update display after board resize
 function resize() {
   let elt = document.getElementById('board');
   let size = elt.offsetWidth;
@@ -349,7 +353,7 @@ resize();
 display();
 
 /*
-** get jpeg orientation
+** get jpeg orientation - see :
 ** https://stackoverflow.com/questions/7584794/accessing-jpeg-exif-rotation-data-in-javascript-on-the-client-side
 */
 function getOrientation(file, callback) {
@@ -393,97 +397,44 @@ function getOrientation(file, callback) {
 }
 
 /*
-** exif2css
+** exif2css - freely adapted from :
 ** https://github.com/Sobesednik/exif2css
 */
-var propMap = { r: 'rotate', ry: 'rotateY', t: 'translateX', ty: 'translateY', }
-var transformsMap = {
-  '2': { ry: 180 },
-  '3': { r: 180 },
-  '4': { r: 180, ry: 180 },
-  '5': { r: 270, ry: 180 },
-  '6': { ty: -1, r: 90 },
-  '7': { ty: -1, t: -1, r: 90, ry: 180 },
-  '8': { t: -1, r: 270 }
-}
-
-var transformOriginMap = {
-  '5': 'top left',
-  '6': 'bottom left',
-  '7': 'bottom right',
-  '8': 'top right',
-}
-
-function expandTransforms(transforms) {
-  var o = {}
-  var expanded = false
-  for (var prop in transforms) {
-    if (!expanded) expanded = true
-    var ep = propMap[prop]
-    o[ep] = transforms[prop]
-  }
-  return expanded ? o : null
-}
+var propMap = { r: 'rotate', ry: 'rotateY', t: 'translateX', ty: 'translateY' }
+  , transformOriginMap = { '5':'top left', '6':'bottom left', '7':'bottom right', '8':'top right' }
+  , transformsMap = {
+      '2': { ry: 180 },
+      '3': { r: 180 },
+      '4': { r: 180, ry: 180 },
+      '5': { r: 270, ry: 180 },
+      '6': { ty: -1, r: 90 },
+      '7': { ty: -1, t: -1, r: 90, ry: 180 },
+      '8': { t: -1, r: 270 }
+    }
+;
 
 function getValue(prop, value) {
-  if (prop === 'r' || prop === 'ry') {
-    return value + 'deg'
-  }
-  if (prop === 't' || prop === 'ty') {
-    return value * 100 + '%'
-  }
+  return (prop === 'r' || prop === 'ry') ? value+'deg' : value*100+'%'
 }
 
 function expandTransform(transforms) {
   var a = []
-  for (var prop in transforms) {
-    var ep = propMap[prop]
+  for (let prop in transforms) {
+    let ep = propMap[prop]
     a.push(ep + '(' + getValue(prop, transforms[prop]) + ')')
   }
   return a.length ? a.join(' ') : null
 }
 
-
-function expandTransformStrings(transforms) {
-  var o = {}
-  var expanded = false
-  for (var prop in transforms) {
-    if (!expanded) expanded = true
-    var ep = propMap[prop]
-    o[ep] = ep + '(' + getValue(prop, transforms[prop]) + ')'
-  }
-  return expanded ? o : null
-}
-
 function exif2css(orientation) {
   var s = String(orientation)
-  var transforms = transformsMap[s]
-
-  var transform = expandTransform(transforms)
-  var transformOrigin = transformOriginMap[s]
-  var allTransforms = expandTransforms(transforms)
-  var allTransformStrings = expandTransformStrings(transforms)
-
-  var css = {}
-  if (transform) {
-    css.transform = transform
+    , transform = expandTransform(transformsMap[s])
+    , transformOrigin = transformOriginMap[s]
+  ;
+  return {
+    transform: transform || 'none',
+    'transform-origin': transformOrigin || 'initial'
   }
-  else {
-    css.transform = 'none'
-  }
-  if (transformOrigin) {
-    css['transform-origin'] = transformOrigin
-  }
-  else {
-    css['transform-origin'] = 'initial'
-  }
-  if (allTransforms) {
-    css.transforms = allTransforms
-  }
-  if (allTransformStrings) {
-    css.transformStrings = allTransformStrings
-  }
-  return css
 }
 
 </script>
