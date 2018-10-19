@@ -303,7 +303,7 @@ function resize() {
     cells.forEach( (cell,n) => {
       let row = 1 + parseInt(n/4,10);
       let col = 1 + n%4;
-      if ( img.height > img.width ) {
+      if ( img.width > img.height ) {
         cell.img.style.width = size + 'px';
         cell.img.style.height = 'auto';
       }
