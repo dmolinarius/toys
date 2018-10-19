@@ -8,7 +8,7 @@ Jeu de taquin (15-puzzle game)
 
 -->
 <title>jeu de taquin</title>
-<style> 
+<style>
 
 /* viewport properties */
 html, body {
@@ -281,13 +281,15 @@ img.onload = function() {
 };
 
 function update() {
-  let check = document.querySelector('.cell img');
+  let css = exif2css(img.orientation);
   cells.forEach( cell => {
     if ( !cell.img ) {
       cell.img = document.createElement('img');
       cell.div.insertBefore(cell.img,cell.div.firstChild);
     }
     cell.img.src = img.src;
+    cell.img.style.transform = css.transform;
+    cell.img.style['transform-origin'] = css['transform-origin'];
   });
 }
 function resize() {
@@ -319,11 +321,16 @@ window.onload = resize;
 
 // read image file
 function fread(changeEvent) {
-  let reader = new FileReader();
-  reader.onload = function (loadEvent) {
-    img.src = bgimage = loadEvent.target.result;
-  };
-  reader.readAsDataURL(changeEvent.target.files[0]);
+  var file = changeEvent.target.files[0];
+
+  getOrientation( file, function(orientation) {
+    let reader = new FileReader();
+    reader.onload = function (loadEvent) {
+      img.orientation = orientation;
+      img.src = bgimage = loadEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 // reset layout
@@ -340,5 +347,143 @@ function reset() {
 // initial vue update
 resize();
 display();
+
+/*
+** get jpeg orientation
+** https://stackoverflow.com/questions/7584794/accessing-jpeg-exif-rotation-data-in-javascript-on-the-client-side
+*/
+function getOrientation(file, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+
+    var view = new DataView(e.target.result);
+    if (view.getUint16(0, false) != 0xFFD8) {
+      return callback(-2);
+    }
+    var length = view.byteLength, offset = 2;
+    while (offset < length) {
+      if (view.getUint16(offset+2, false) <= 8) return callback(-1);
+      var marker = view.getUint16(offset, false);
+      offset += 2;
+      if (marker == 0xFFE1) {
+        if (view.getUint32(offset += 2, false) != 0x45786966) {
+          return callback(-1);
+        }
+
+        var little = view.getUint16(offset += 6, false) == 0x4949;
+        offset += view.getUint32(offset + 4, little);
+        var tags = view.getUint16(offset, little);
+        offset += 2;
+        for (var i = 0; i < tags; i++) {
+          if (view.getUint16(offset + (i * 12), little) == 0x0112) {
+            return callback(view.getUint16(offset + (i * 12) + 8, little));
+          }
+        }
+      }
+      else if ((marker & 0xFF00) != 0xFF00) {
+        break;
+      }
+      else {
+        offset += view.getUint16(offset, false);
+      }
+    }
+    return callback(-1);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/*
+** exif2css
+** https://github.com/Sobesednik/exif2css
+*/
+var propMap = { r: 'rotate', ry: 'rotateY', t: 'translateX', ty: 'translateY', }
+var transformsMap = {
+  '2': { ry: 180 },
+  '3': { r: 180 },
+  '4': { r: 180, ry: 180 },
+  '5': { r: 270, ry: 180 },
+  '6': { ty: -1, r: 90 },
+  '7': { ty: -1, t: -1, r: 90, ry: 180 },
+  '8': { t: -1, r: 270 }
+}
+
+var transformOriginMap = {
+  '5': 'top left',
+  '6': 'bottom left',
+  '7': 'bottom right',
+  '8': 'top right',
+}
+
+function expandTransforms(transforms) {
+  var o = {}
+  var expanded = false
+  for (var prop in transforms) {
+    if (!expanded) expanded = true
+    var ep = propMap[prop]
+    o[ep] = transforms[prop]
+  }
+  return expanded ? o : null
+}
+
+function getValue(prop, value) {
+  if (prop === 'r' || prop === 'ry') {
+    return value + 'deg'
+  }
+  if (prop === 't' || prop === 'ty') {
+    return value * 100 + '%'
+  }
+}
+
+function expandTransform(transforms) {
+  var a = []
+  for (var prop in transforms) {
+    var ep = propMap[prop]
+    a.push(ep + '(' + getValue(prop, transforms[prop]) + ')')
+  }
+  return a.length ? a.join(' ') : null
+}
+
+
+function expandTransformStrings(transforms) {
+  var o = {}
+  var expanded = false
+  for (var prop in transforms) {
+    if (!expanded) expanded = true
+    var ep = propMap[prop]
+    o[ep] = ep + '(' + getValue(prop, transforms[prop]) + ')'
+  }
+  return expanded ? o : null
+}
+
+function exif2css(orientation) {
+  var s = String(orientation)
+  var transforms = transformsMap[s]
+
+  var transform = expandTransform(transforms)
+  var transformOrigin = transformOriginMap[s]
+  var allTransforms = expandTransforms(transforms)
+  var allTransformStrings = expandTransformStrings(transforms)
+
+  var css = {}
+  if (transform) {
+    css.transform = transform
+  }
+  else {
+    css.transform = 'none'
+  }
+  if (transformOrigin) {
+    css['transform-origin'] = transformOrigin
+  }
+  else {
+    css['transform-origin'] = 'initial'
+  }
+  if (allTransforms) {
+    css.transforms = allTransforms
+  }
+  if (allTransformStrings) {
+    css.transformStrings = allTransformStrings
+  }
+  return css
+}
 
 </script>
