@@ -59,43 +59,23 @@ class Ball {
   move(dist) {
     let dx = dist * this.directx
       , dy = - dist * this.directy
-    ;
-    // https://openclassrooms.com/forum/sujet/calcul-du-point-d-intersection-de-deux-segments-21661
-    // to compute intersection of segments [AB] and [CD] where I is vector such as B = A + kI
-    // and J such as D = C + mJ, let's compute k and m and check if d and m are > 0 and < 1
-    let cx = this.x, cy = this.y, jx = dx, jy = dy
       , minm = 2
-      , self = this
+      , info = walls.reduce((o,w) => w.check_bounce(o), {minm, ball:this, dx, dy, wall:null})
     ;
-    walls.forEach(function(w) {
-      if ( Math.sign(w.nx)*Math.sign(dx) > 0 && Math.sign(w.ny)*Math.sign(dy) > 0 ) return;
-      let ax = w.ax, ay = w.ay, ix = w.ix, iy = w.iy
-        , d = (ix*jy-iy*jx)
-        , m = (ix*(ay-cy)+iy*(cx-ax))/d
-        , k = (jy*(cx-ax)+jx*(ay-cy))/d
-      ;
-      // we have an intersection
-      if ( m > 0 && m < 1 && k > 0 && k < 1 ) {
-        // consider the first encountered wall
-        if ( m < minm) {
-          // intersection point;
-          let px = cx + m * jx;
-          let py = cy + m * jy;
-          minm = m;
-          // new position
-          let s = (self.x + dx - px)*w.nx + (self.y + dy - py)*w.ny;
-          self.x = px - s * w.nx;
-          self.y = py - s * w.ny;
-          // new direction
-          s = (self.directx * w.nx + self.directy * w.ny);
-          self.directx = self.directx - 2 * s * w.nx;
-          self.directy = self.directy - 2 * s * w.ny;
-          console.log('new pos ',self.x,self.y,' dir ',self.directx, self.directy);
-        }
-      }
-    });
-    // not bounced
-    if ( minm > 1 ) {
+    if ( info.minm < 1 ) { // we should bounce
+      // bounce point
+      let px = this.x + info.minm * dx
+        , py = this.y + info.minm * dy;
+      // new position
+      let sp = (this.x + dx - px)*info.wall.nx + (this.y + dy - py)*info.wall.ny;
+      this.x = px - sp * info.wall.nx;
+      this.y = py - sp * info.wall.ny;
+      // new direction
+      let sd = (this.directx * info.wall.nx + this.directy * info.wall.ny);
+      this.directx = this.directx - 2 * sd * info.wall.nx;
+      this.directy = this.directy - 2 * sd * info.wall.ny;
+    }
+    else { // no bounce
       this.x += dx;
       this.y += dy;
     }
@@ -155,6 +135,24 @@ class Wall {
     // "bouncing segment" origin
     this.ax = this.x1 + this.nx * radius;
     this.ay = this.y1 + this.ny * radius;
+  }
+  // https://openclassrooms.com/forum/sujet/calcul-du-point-d-intersection-de-deux-segments-21661
+  // to compute intersection of segments [AB] and [CD] where I is vector such as B = A + kI
+  // and J such as D = C + mJ, let's compute k and m and check if d and m are > 0 and < 1
+  check_bounce(info) {
+    let cx = info.ball.x, cy = info.ball.y, jx = info.dx, jy = info.dy;
+    if ( Math.sign(this.nx)*Math.sign(jx) > 0 && Math.sign(this.ny)*Math.sign(jy) > 0 ) {
+      return info;
+    }
+    let ax = this.ax, ay = this.ay, ix = this.ix, iy = this.iy
+      , d = (ix*jy-iy*jx)
+      , m = (ix*(ay-cy)+iy*(cx-ax))/d
+      , k = (jy*(cx-ax)+jx*(ay-cy))/d
+    ;
+    if ( m > 0 && m < 1 && k > 0 && k < 1 ) {
+      if ( m < info.minm) return {...info, minm:m, wall:this};
+    }
+    return info;
   }
 }
 function initialize() {
