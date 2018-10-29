@@ -59,26 +59,28 @@ class Ball {
   move(dist) {
     let dx = dist * this.directx
       , dy = - dist * this.directy
-      , minm = 2
-      , info = walls.reduce((o,w) => w.check_bounce(o), {minm, ball:this, dx, dy, wall:null})
+      , info = walls.reduce((o,w) => w.check_bounce(o), { minm:2, ball:this, dx, dy, wall:null })
     ;
     if ( info.minm < 1 ) { // we should bounce
-      // bounce point
-      let px = this.x + info.minm * dx
-        , py = this.y + info.minm * dy;
-      // new position
-      let sp = (this.x + dx - px)*info.wall.nx + (this.y + dy - py)*info.wall.ny;
-      this.x = px - sp * info.wall.nx;
-      this.y = py - sp * info.wall.ny;
-      // new direction
-      let sd = (this.directx * info.wall.nx + this.directy * info.wall.ny);
-      this.directx = this.directx - 2 * sd * info.wall.nx;
-      this.directy = this.directy - 2 * sd * info.wall.ny;
+      this.bounce(dx, dy, info.minm, info.wall);
     }
     else { // no bounce
       this.x += dx;
       this.y += dy;
     }
+  }
+  bounce(dx, dy, m, wall) {
+    // bounce point
+    let px = this.x + m * dx
+      , py = this.y + m * dy;
+    // new position
+    let sp = (this.x + dx - px)*wall.nx + (this.y + dy - py)*wall.ny;
+    this.x = px - sp * wall.nx;
+    this.y = py - sp * wall.ny;
+    // new direction
+    let sd = (this.directx * wall.nx + this.directy * wall.ny);
+    this.directx = this.directx - 2 * sd * wall.nx;
+    this.directy = this.directy - 2 * sd * wall.ny;
   }
   draw(ctx) {
     ctx.save();
