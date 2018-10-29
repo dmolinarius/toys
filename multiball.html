@@ -39,40 +39,220 @@ html, body {
 <canvas id="playground"></canvas>
 
 <script>
-var ctx = playground.getContext('2d')
+var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-width'),10)
+  , ctx = playground.getContext('2d')
+  , state = 'waiting'
   , launcher = null
   , ball = null
+  , radius = 0
+  , walls = []
 ;
 
 class Ball {
-  constructor(x,y,r) {
-    Object.assign(this,{x, y, r});
+  constructor() {
+    this.r = 0.8*radius;
+    this.x = launcher.x;
+    this.y = launcher.y;
+    this.directx = Math.sin(launcher.angle);
+    this.directy = Math.cos(launcher.angle);
+  }
+  move(dist) {
+    let dx = dist * this.directx
+      , dy = - dist * this.directy
+    ;
+    // https://openclassrooms.com/forum/sujet/calcul-du-point-d-intersection-de-deux-segments-21661
+    // to compute intersection of segments [AB] and [CD] where I is vector such as B = A + kI
+    // and J such as D = C + mJ, let's compute k and m and check if d and m are > 0 and < 1
+    let cx = this.x, cy = this.y, jx = dx, jy = dy
+      , minm = 2
+      , self = this
+    ;
+    walls.forEach(function(w) {
+      if ( Math.sign(w.nx)*Math.sign(dx) > 0 && Math.sign(w.ny)*Math.sign(dy) > 0 ) return;
+      let ax = w.ax, ay = w.ay, ix = w.ix, iy = w.iy
+        , d = (ix*jy-iy*jx)
+        , m = (ix*(ay-cy)+iy*(cx-ax))/d
+        , k = (jy*(cx-ax)+jx*(ay-cy))/d
+      ;
+      // we have an intersection
+      if ( m > 0 && m < 1 && k > 0 && k < 1 ) {
+        // consider the first encountered wall
+        if ( m < minm) {
+          // intersection point;
+          let px = cx + m * jx;
+          let py = cy + m * jy;
+          minm = m;
+          // new position
+          let s = (self.x + dx - px)*w.nx + (self.y + dy - py)*w.ny;
+          self.x = px - s * w.nx;
+          self.y = py - s * w.ny;
+          // new direction
+          s = (self.directx * w.nx + self.directy * w.ny);
+          self.directx = self.directx - 2 * s * w.nx;
+          self.directy = self.directy - 2 * s * w.ny;
+          console.log('new pos ',self.x,self.y,' dir ',self.directx, self.directy);
+        }
+      }
+    });
+    // not bounced
+    if ( minm > 1 ) {
+      this.x += dx;
+      this.y += dy;
+    }
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, 2*Math.PI);
+    ctx.fill();
+    ctx.restore();
+  }
+  resize(s) {
+    this.x *= s;
+    this.y *= s;
+    this.r *= s;
   }
 }
 class Launcher {
-  constructor(x,y) {
-    Object.assign(this,{x, y});
+  constructor(p,r) {
+    this.resize(p);
+    this.angle = 0;
+  }
+  lookat(x,y) {
+    this.angle = Math.atan((x - this.x)/(this.y - y));
+  }
+  resize(p) {
+    this.x = p.width/2;
+    this.y = p.height - 3*radius;
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.fillStyle = 'lime';
+    ctx.translate(this.x,this.y);
+    ctx.rotate(this.angle);
+    ctx.fillRect(-radius, -2*radius, 2*radius, 4*radius)
+    ctx.restore();
+  }
+}
+class Wall {
+  constructor(x1,y1,x2,y2) {
+    Object.assign(this,{x1, y1, x2, y2});
+
+    // vector
+    this.ix = this.x2 - this.x1;
+    this.iy = this.y2 - this.y1;
+
+    // norm
+    this.norm = Math.sqrt(this.ix*this.ix + this.iy*this.iy);
+
+    // normal
+    this.nx = (y1 - y2)/this.norm;
+    this.ny = (x2 - x1)/this.norm;
+    this.sx = Math.sign(this.nx);
+    this.sy = Math.sign(this.ny);
+
+    // "bouncing segment" origin
+    this.ax = this.x1 + this.nx * radius;
+    this.ay = this.y1 + this.ny * radius;
   }
 }
 function initialize() {
+  radius = playground.width / 28;
+  launcher = new Launcher(playground);
   resize();
-  let r = playground.width / 28;
-  launcher = new Launcher(playground.width/2,playground.height-2*r)
-  ball = new Ball(launcher.x, launcher.y, r)
-  redraw();
+}
+function init_walls() {
+  walls = [
+    new Wall(0,0, playground.width,0),
+    new Wall(playground.width,0, playground.width,playground.height),
+    new Wall(playground.width,playground.height, 0,playground.height),
+    new Wall(0,playground.height, 0,0)
+  ];
 }
 function resize() {
+  let scale = playground.clientWidth/playground.width;
   playground.width = playground.clientWidth;
   playground.height = playground.clientHeight;
+  radius = playground.width / 28;
+  launcher.resize(playground);
+  if ( ball ) ball.resize(scale);
+  init_walls();
+  redraw();
 }
 function redraw() {
-  ctx.beginPath();
-  ctx.fillStyle = 'white';
-  ctx.arc(ball.x, ball.y, ball.r, 0, 2*Math.PI);
-  ctx.fill();
+  erase();
+  launcher.draw(ctx);
+  if ( ball ) ball.draw(ctx);
 }
-//window.onresize = resize;
-//resize();
+function erase() {
+  ctx.clearRect(0,0,playground.width,playground.height);
+}
+function start_shooting(e) {
+  playground.removeEventListener('mousedown',start_shooting);
+  playground.addEventListener('mousemove',shoot);
+  playground.addEventListener('mouseup',fire);
+}
+function shoot(e) {
+  var x = e.layerX - bw
+    , y = Math.min(launcher.y, e.layerY - bw)
+  ;
+  state = 'shooting';
+
+  erase();
+  launcher.lookat(x,y);
+  launcher.draw(ctx);
+
+  ctx.save();
+  ctx.strokeStyle = 'white';
+  ctx.setLineDash([2,2]);
+  ctx.beginPath();
+  ctx.moveTo(launcher.x,launcher.y);
+  ctx.lineTo(x,y);
+  ctx.stroke();
+  ctx.restore();
+}
+function fire(e) {
+  playground.removeEventListener('mousemove',shoot);
+  start();
+}
+function start() {
+  var start = null
+    , previous = null
+    , steps = 0
+  ;
+  state = 'playing';
+  ball = new Ball();
+  erase();
+  launcher.draw(ctx);
+  requestAnimationFrame(nextStep);
+
+  // inlined to use closure
+  function nextStep(timestamp) {
+    if ( !start ) {
+      start = timestamp;
+      previous = start;
+    }
+    steps += 1;
+
+    let dist = timestamp - previous;
+    ball.move(dist);
+    redraw();
+
+    if ( ball.y < playground.height - 2*radius) {
+      requestAnimationFrame(nextStep);
+    }
+    else stop();
+    previous = timestamp;
+  }
+}
+function stop() {
+  state = 'waiting';
+  playground.addEventListener('mousedown',start_shooting);
+}
+
 initialize();
+window.onresize = resize;
+playground.addEventListener('mousedown',start_shooting);
 
 </script>
