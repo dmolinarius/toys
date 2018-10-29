@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<!--
+Shoot Bricks v0.0
+-->
+<title>MultiBall</title>
+<style>
+
+/* viewport properties */
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: Consolas;
+}
+
+#board, #playground {
+  position: absolute;
+  width: 70vmin;
+  height: 90vmin;
+  top: calc(50vh - 45vmin);
+  left: calc(50vw - 35vmin - 2.5px);
+  border-radius: 3px;
+  border: 5px solid #400;
+}
+
+#board {
+  box-shadow: 1vw 1vh 1vmax #420;
+  background-color: #844;
+}
+#playground {
+  border: 5px solid #400;
+  background-color: transparent;
+}
+
+</style>
+
+<div id="board"></div>
+<canvas id="playground"></canvas>
+
+<script>
+var ctx = playground.getContext('2d')
+  , launcher = null
+  , ball = null
+;
+
+class Ball {
+  constructor(x,y,r) {
+    Object.assign(this,{x, y, r});
+  }
+}
+class Launcher {
+  constructor(x,y) {
+    Object.assign(this,{x, y});
+  }
+}
+function initialize() {
+  resize();
+  let r = playground.width / 28;
+  launcher = new Launcher(playground.width/2,playground.height-2*r)
+  ball = new Ball(launcher.x, launcher.y, r)
+  redraw();
+}
+function resize() {
+  playground.width = playground.clientWidth;
+  playground.height = playground.clientHeight;
+}
+function redraw() {
+  ctx.beginPath();
+  ctx.fillStyle = 'white';
+  ctx.arc(ball.x, ball.y, ball.r, 0, 2*Math.PI);
+  ctx.fill();
+}
+//window.onresize = resize;
+//resize();
+initialize();
+
+</script>
