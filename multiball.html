@@ -71,27 +71,44 @@ html, body {
 
 </style>
 
+<!-- where blocks live -->
 <div id="board"></div>
+
+<!-- where launcher & balls live -->
 <canvas id="playground"></canvas>
+
+<!-- Game Over popup -->
 <div id="lost">Game Over !</div>
+
+<!-- Congrats message -->
 <div id="won">Congratulations<br>you won !</div>
 
 <script>
 var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-width'),10)
-  , ctx = playground.getContext('2d')
-  , state = 'waiting'
-  , launcher = null
-  , blocksize = 0
-  , blocks = []
-  , nballs = 1
-  , balls = []
-  , radius = 0
-  , walls = []
-  , corners = []
-  , level = 1
+  , ctx = playground.getContext('2d') // canvas context
+  , state = 'waiting' // app state
+  , launcher = null   // launcher object
+  , blocksize = 0     // cell size
+  , blocks = []       // list of block objects
+  , nballs = 1        // current number of balls
+  , balls = []        // list of ball objects
+  , radius = 0        // ball radius
+  , walls = []        // list of wall objects, computed from borders and blocks
+  , corners = []      // list of Sphere objects, corresponding to block corners
+  , level = 1         // current player level
 ;
 
+/* ****************************************************************************
+**
+** Ball Class
+**
+** ***************************************************************************/
 class Ball {
+
+  /*
+  ** Balls are created with current radius, at launcher position,
+  ** and direction depending on launcher orientation
+  */
   constructor() {
     this.r = 0.8*radius;
     this.x = launcher.x;
@@ -99,6 +116,10 @@ class Ball {
     this.directx = Math.sin(launcher.angle);
     this.directy = -Math.cos(launcher.angle);
   }
+
+  /*
+  ** Move ball by given distance, eventually bouncing on obstacles
+  */
   move(dist) {
     let dx = dist * this.directx
       , dy = dist * this.directy
@@ -119,8 +140,12 @@ class Ball {
     this.x += dx;
     this.y += dy;
   }
+
+  /*
+  ** Compute new position after boucing
+  */
   bounce(dx, dy, m, nx, ny) {
-    // bounce point
+    // contact point
     let px = this.x + m * dx
       , py = this.y + m * dy;
     // new position
@@ -132,6 +157,10 @@ class Ball {
     this.directx = this.directx - 2 * sd * nx;
     this.directy = this.directy - 2 * sd * ny;
   }
+
+  /*
+  ** Draw ball on canvas
+  */
   draw(ctx) {
     ctx.save();
     ctx.fillStyle = 'white';
@@ -140,24 +169,50 @@ class Ball {
     ctx.fill();
     ctx.restore();
   }
+
+  /*
+  ** Resize ball by given scale
+  */
   resize(s) {
     this.x *= s;
     this.y *= s;
     this.r *= s;
   }
 }
+
+/* ****************************************************************************
+**
+** Ball Launcher
+**
+** ***************************************************************************/
 class Launcher {
-  constructor(p,r) {
+
+  /*
+  ** Create Launcher (p is playground)
+  */
+  constructor(p) {
     this.resize(p);
     this.angle = 0;
   }
+
+  /*
+  ** Update angle to shoot at given coordinates
+  */
   lookat(x,y) {
     this.angle = Math.atan((x - this.x)/(this.y - y));
   }
+
+  /*
+  ** Resize Launcher (p is playground)
+  */
   resize(p) {
     this.x = p.width/2;
     this.y = p.height - 3*radius;
   }
+
+  /*
+  ** Draw Lancher on canvas
+  */
   draw(ctx) {
     ctx.save();
     ctx.fillStyle = 'lime';
@@ -167,7 +222,18 @@ class Launcher {
     ctx.restore();
   }
 }
+
+/* ****************************************************************************
+**
+** A Wall is a segment where balls will bounce
+**
+** ***************************************************************************/
 class Wall {
+
+  /*
+  ** Create oriented segment
+  ** Normal orientation will depend on order of given points
+  */
   constructor(owner, x1,y1,x2,y2) {
     Object.assign(this,{owner, x1, y1, x2, y2});
 
@@ -184,13 +250,17 @@ class Wall {
     this.sx = Math.sign(this.nx);
     this.sy = Math.sign(this.ny);
 
-    // "bouncing segment" origin
+    // segment origin
     this.ax = this.x1 + this.nx * radius;
     this.ay = this.y1 + this.ny * radius;
   }
-  // https://openclassrooms.com/forum/sujet/calcul-du-point-d-intersection-de-deux-segments-21661
-  // to compute intersection of segments [AB] and [CD] where I is vector such as B = A + kI
-  // and J such as D = C + mJ, let's compute k and m and check if d and m are > 0 and < 1
+
+  /*
+  ** Check if moving ball will bounce on segment
+  ** https://openclassrooms.com/forum/sujet/calcul-du-point-d-intersection-de-deux-segments-21661
+  ** to compute intersection of segments [AB] and [CD] where I is vector such as B = A + kI
+  ** and J such as D = C + mJ, let's compute k and m and check if d and m are > 0 and < 1
+  */
   check_bounce(info) {
     let cx = info.ball.x, cy = info.ball.y, jx = info.dx, jy = info.dy;
     if ( Math.sign(this.nx)*Math.sign(jx) > 0 && Math.sign(this.ny)*Math.sign(jy) > 0 ) {
@@ -207,11 +277,26 @@ class Wall {
     return info;
   }
 }
+
+/* ****************************************************************************
+**
+** Spheres are used to implement block corners
+**
+** ***************************************************************************/
 class Sphere {
+
+  /*
+  ** Create Sphere - Owner is block the corner belongs to
+  */
   constructor(owner, x,y,r) {
     Object.assign(this,{owner, x, y, r});
     this.r2 = this.r * this.r;
   }
+
+  /*
+  ** Check if moving ball will bounce on sphere
+  ** Model of ball is as above, model of sphere is P / OP = r
+  */
   check_bounce(info) {
     let cx = info.ball.x, cy = info.ball.y, jx = info.dx, jy = info.dy
       , cmox = cx - this.x, cmoy = cy - this.y
@@ -233,6 +318,10 @@ class Sphere {
     let n = this.normal(cx + m*jx, cy + m*jy);
     return m < info.minm ? {...info, minm:m, ...n, o:this.owner} : info;
   }
+
+  /*
+  ** returns normal at given point
+  */
   normal(x,y) {
     return {
       nx: (x - this.x)/this.r,
@@ -240,8 +329,18 @@ class Sphere {
     }
   }
 }
+
+/* ****************************************************************************
+**
+** Blocks are the obstacles balls bounce on
+**
+** ***************************************************************************/
 class Block {
-  constructor(col,row) {
+
+  /*
+  ** Blocks are created at given column and row, with current level
+  */
+  constructor(col,row,level) {
     this.level = level;
     this.col = col;
     this.row = row;
@@ -252,6 +351,10 @@ class Block {
     this.resize();
     window.board.appendChild(this.elt);
   }
+
+  /*
+  ** Return coords of block corners
+  */
   coords() {
     return{
       x1: (this.col-1)*blocksize,
@@ -264,6 +367,10 @@ class Block {
       y4: (this.row  )*blocksize
     };
   }
+
+  /*
+  ** Create walls where balls will bounce
+  */
   walls(a) {
     let c = this.coords();
     return a.concat([
@@ -273,6 +380,10 @@ class Block {
       new Wall(this,c.x2,c.y2,c.x1,c.y1)
     ]);
   }
+
+  /*
+  ** Create corners where balls will bounce
+  */
   corners(a) {
     let c = this.coords();
     return a.concat([
@@ -282,6 +393,10 @@ class Block {
       new Sphere(this,c.x4,c.y4,radius)
     ]);
   }
+
+  /*
+  ** Resize block
+  */
   resize() {
     this.elt.style.left = (this.col-1)*blocksize+'px';
     this.elt.style.top = (this.row-1)*blocksize+'px';
@@ -290,23 +405,22 @@ class Block {
     this.elt.style.lineHeight = blocksize+'px';
     this.elt.style.fontSize = (blocksize/3)+'px';
   }
+
+  /*
+  ** Repaint block depending on block level
+  */
   repaint() {
-    var color, c;
-    if ( this.level < 9 ) {
-      c = 8*(this.level-1);
-      color = rgb(192+c,192-c,192-c);
-    }
-    else if ( this.level < 17 ) {
-      c = 16*(this.level-9);
-      color = rgb(256,128,128+c);
-    }
-    else if ( this.level < 25 ) {
-      c = 16*(this.level-17);
-      color = rgb(256-c,128,256);
-    }
-    else color = 'white';
+    let p = color_palette.reduceRight((p,cp,j) => this.level < cp.i ? {...cp, j} : p, null)
+      , l = p ? this.level - color_palette[p.j-1].i : undefined
+      , color = p ? p.color(p.f(l)) : 'white'
+    ;
     this.elt.style.backgroundColor = color;
   }
+
+  /*
+  ** Block has been hit, decrease level and repaint
+  ** or eventually delete block of level is < 1
+  */
   hit(ball) {
     this.level = this.level - 1;
     this.elt.textContent = this.level;
@@ -314,36 +428,71 @@ class Block {
     else this.repaint();
   }
 }
+
+/*
+** block color palette
+*/
+var color_palette = [
+  { i: 1 },
+  { i: 9,  f: l =>  8*l, color: c => rgb(192+c,192-c,192-c) },
+  { i: 17, f: l => 16*l, color: c => rgb(256,128,128+c) },
+  { i: 25, f: l => 16*l, color: c => rgb(256-c,128,256) },
+  { i: 33, f: l =>  8*l, color: c => rgb(128-2*c,128+c,256-3*c) },
+  { i: 41, f: l =>  8*l, color: c => rgb(3*c,192-c,64) },
+];
+
+/*
+** Helper function, return CSS rgb string
+*/
 function rgb(r,g,b) {
   return 'rgb('+r+','+g+','+b+')';
 }
-function init_consts() {
-  blocksize = playground.width / 7;
-  radius = playground.width / 40;
-}
+
+/*
+** Initialize app
+*/
 function initialize() {
   init_consts();
   launcher = new Launcher(playground);
   update_blocks();
   resize();
 }
+
+/*
+** Initialize app constants depending on window size
+*/
+function init_consts() {
+  blocksize = playground.width / 7;
+  radius = playground.width / 40;
+}
+
+/*
+** Scroll existing blocks down, and create a new row of blocks
+*/
 function update_blocks() {
   blocks.forEach(b => b.row += 1);
-  let num = 4 + random_int(2)
+  let num = 2 + random_int(4)
     , available_cols = [1, 2, 3, 4, 5, 6, 7]
   ;
   for ( let n=0; n < num; n++ ) {
     let i = random_int(available_cols.length);
     let col = available_cols[i-1];
-    blocks.push(new Block(col,2));
+    blocks.push(new Block(col,2,Math.floor(6*level/num)));
     available_cols.splice(i-1,1);
   }
 }
+
+/*
+** Helper function, return a random integer
+*/
 function random_int(max) {
   var n = Math.ceil(Math.random() * max);
   return n;
 }
 
+/*
+** Create walls and corners from playground borders, and list of blocks
+*/
 function init_obstacles() {
   // playground borders
   walls = [
@@ -352,9 +501,14 @@ function init_obstacles() {
     new Wall(bottom(),playground.width,playground.height, 0,playground.height),
     new Wall(null,0,playground.height, 0,0)
   ];
+  // blocks
   walls = blocks.reduce((w,b) => b.walls(w),walls);
   corners = blocks.reduce((c,b) => b.corners(c),corners);
 }
+
+/*
+** hit member of returned object is to be called when a ball hits bottom of playground
+*/
 function bottom() {
   return {
     hit: function(ball) {
@@ -366,6 +520,10 @@ function bottom() {
     }
   }
 }
+
+/*
+** Remove a block from list of blocks, as well as his walls, corners and DOM element
+*/
 function remove_block(b) {
   blocks.splice(blocks.indexOf(b),1);
   walls.filter(w => w.owner == b).forEach(w => walls.splice(walls.indexOf(w),1));
@@ -373,6 +531,10 @@ function remove_block(b) {
   b.elt.parentNode.removeChild(b.elt);
   if ( blocks.length < 1 ) game_over(won);
 }
+
+/*
+** Resize whole app
+*/
 function resize() {
   let scale = playground.clientWidth/playground.width;
   playground.width = playground.clientWidth;
@@ -384,19 +546,35 @@ function resize() {
   init_obstacles();
   redraw();
 }
+
+/*
+** Redraw canvas
+*/
 function redraw() {
   erase();
   launcher.draw(ctx);
   balls.forEach(b => b.draw(ctx));
 }
+
+/*
+* Erase canvas
+*/
 function erase() {
   ctx.clearRect(0,0,playground.width,playground.height);
 }
+
+/*
+** mouse down on canvas - start shooting
+*/
 function start_shooting(e) {
   playground.removeEventListener('mousedown',start_shooting);
   playground.addEventListener('mousemove',shoot);
   playground.addEventListener('mouseup',fire);
 }
+
+/*
+** mouse move on canvas - shoot
+*/
 function shoot(e) {
   var x = e.layerX - bw
     , y = Math.min(launcher.y - radius, e.layerY - bw)
@@ -416,27 +594,35 @@ function shoot(e) {
   ctx.stroke();
   ctx.restore();
 }
+
+/*
+** mouse up on canvas - fire balls
+*/
 function fire(e) {
   playground.removeEventListener('mousemove',shoot);
   playground.removeEventListener('mouseup',fire);
-  start();
-}
-function start() {
-  var steps = 0
-    , start = null
-    , previous = null
-    , launched_balls = 0
+
+  let steps = 0             // current number of animation steps
+    , start = null          // animation start timestamp
+    , previous = null       // previous animation step timestamp
+    , launched_balls = 0    // current number of launched balls
   ;
   state = 'playing';
   balls = [];
   playground.addEventListener('click',home);
   requestAnimationFrame(nextStep);
 
-  // inlined to use closure
+  /*
+  ** functions below inlined to use closure
+  */
+
+  // launch a new ball
   function launch_ball() {
     balls.push(new Ball);
     launched_balls += 1;
   }
+
+  // animation step
   function nextStep(timestamp) {
     if ( !start ) {
       start = timestamp;
@@ -444,8 +630,11 @@ function start() {
     }
     steps += 1;
 
+    // while some balls still to launch ...
     if ( state=='playing' && launched_balls < nballs ) {
+      // launch first ball ...
       if (balls.length == 0) launch_ball();
+      // ... and other ones at 3 radius distance from each others
       else {
         let ball = balls[balls.length-1]
           , dx = ball.x - launcher.x
@@ -455,14 +644,21 @@ function start() {
         if ( d > radius*3 ) launch_ball();
       }
     }
+
+    // move all balls forward and redraw
     let dist = (timestamp - previous)/2;
     balls.forEach(b => b.move(dist));
     redraw();
 
+    // if still playing register next animation step
     if ( state == 'playing' ) requestAnimationFrame(nextStep);
     previous = timestamp;
   }
 }
+
+/*
+** end current turn by recalling all moving balls home
+*/
 function home(e) {
   var x = e.layerX - bw
     , y = e.layerY - bw
@@ -473,10 +669,18 @@ function home(e) {
   balls = [];
   next_level();
 }
+
+/*
+** be prepared to shoot again
+*/
 function stop() {
   state = 'waiting';
   playground.addEventListener('mousedown',start_shooting);
 }
+
+/*
+** prepare next turn
+*/
 function next_level() {
   level += 1;
   nballs += 1;
@@ -488,11 +692,19 @@ function next_level() {
     redraw();
   }
 }
+
+/*
+** game over
+*/
 function game_over(elt) {
   state = 'game over';
   elt.style.display = 'block';
   playground.removeEventListener('mousedown',start_shooting);
 }
+
+/*
+** start new game
+*/
 function new_game() {
   blocks.forEach(b => b.elt.parentNode.removeChild(b.elt));
   blocks = [];
@@ -509,6 +721,9 @@ function new_game() {
   won.style.display='none';
 }
 
+/*
+** main program
+*/
 initialize();
 window.onresize = resize;
 playground.addEventListener('mousedown',start_shooting);
