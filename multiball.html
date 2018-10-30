@@ -32,6 +32,11 @@ html, body {
   border: 5px solid #400;
   background-color: transparent;
 }
+.block {
+  position: absolute;
+  background-color: #ccc;
+  box-shadow: inset 0 0 3px black;
+}
 
 </style>
 
@@ -43,6 +48,8 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , ctx = playground.getContext('2d')
   , state = 'waiting'
   , launcher = null
+  , blocksize = 0
+  , blocks = []
   , ball = null
   , radius = 0
   , walls = []
@@ -59,28 +66,28 @@ class Ball {
   move(dist) {
     let dx = dist * this.directx
       , dy = - dist * this.directy
-      , info = walls.reduce((o,w) => w.check_bounce(o), { minm:2, ball:this, dx, dy, wall:null })
+      , info = walls.reduce((o,w) => w.check_bounce(o), { minm:2, ball:this, dx, dy, nx:0, ny:0})
     ;
     if ( info.minm < 1 ) { // we should bounce
-      this.bounce(dx, dy, info.minm, info.wall);
+      this.bounce(dx, dy, info.minm, info.nx, info.ny);
     }
     else { // no bounce
       this.x += dx;
       this.y += dy;
     }
   }
-  bounce(dx, dy, m, wall) {
+  bounce(dx, dy, m, nx, ny) {
     // bounce point
     let px = this.x + m * dx
       , py = this.y + m * dy;
     // new position
-    let sp = (this.x + dx - px)*wall.nx + (this.y + dy - py)*wall.ny;
-    this.x = px - sp * wall.nx;
-    this.y = py - sp * wall.ny;
+    let sp = (this.x + dx - px)*nx + (this.y + dy - py)*ny;
+    this.x = px - sp * nx;
+    this.y = py - sp * ny;
     // new direction
-    let sd = (this.directx * wall.nx + this.directy * wall.ny);
-    this.directx = this.directx - 2 * sd * wall.nx;
-    this.directy = this.directy - 2 * sd * wall.ny;
+    let sd = (this.directx * nx + this.directy * ny);
+    this.directx = this.directx - 2 * sd * nx;
+    this.directy = this.directy - 2 * sd * ny;
   }
   draw(ctx) {
     ctx.save();
@@ -152,30 +159,69 @@ class Wall {
       , k = (jy*(cx-ax)+jx*(ay-cy))/d
     ;
     if ( m > 0 && m < 1 && k > 0 && k < 1 ) {
-      if ( m < info.minm) return {...info, minm:m, wall:this};
+      if ( m < info.minm) return {...info, minm:m, nx:this.nx, ny:this.ny};
     }
     return info;
   }
 }
+class Block {
+  constructor(col,row) {
+    this.col = col;
+    this.row = row;
+    this.elt = document.createElement('div');
+    this.elt.className = 'block';
+    this.resize();
+    window.board.appendChild(this.elt);
+  }
+  walls(a) {
+    let x1 = (this.col-1)*blocksize
+      , y1 = (this.row-1)*blocksize
+      , x2 = (this.col  )*blocksize
+      , y2 = (this.row-1)*blocksize
+      , x3 = (this.col  )*blocksize
+      , y3 = (this.row  )*blocksize
+      , x4 = (this.col-1)*blocksize
+      , y4 = (this.row  )*blocksize
+    ;
+    return a.concat([
+      new Wall(x1,y1,x4,y4),
+      new Wall(x4,y4,x3,y3),
+      new Wall(x3,y3,x2,y2),
+      new Wall(x2,y2,x1,y1)
+    ]);
+  }
+  resize() {
+    this.elt.style.left = (this.col-1)*blocksize+'px';
+    this.elt.style.top = (this.row-1)*blocksize+'px';
+    this.elt.style.width = blocksize+'px';
+    this.elt.style.height = blocksize+'px';
+  }
+}
 function initialize() {
+  blocksize = playground.width / 7;
   radius = playground.width / 28;
   launcher = new Launcher(playground);
+  blocks = [ new Block(3,3) ]
   resize();
 }
 function init_walls() {
+  // playground borders
   walls = [
     new Wall(0,0, playground.width,0),
     new Wall(playground.width,0, playground.width,playground.height),
     new Wall(playground.width,playground.height, 0,playground.height),
     new Wall(0,playground.height, 0,0)
   ];
+  walls = blocks.reduce((w,b) => b.walls(w),walls);
 }
 function resize() {
   let scale = playground.clientWidth/playground.width;
   playground.width = playground.clientWidth;
   playground.height = playground.clientHeight;
+  blocksize = playground.width / 7;
   radius = playground.width / 28;
   launcher.resize(playground);
+  blocks.forEach(b => b.resize());
   if ( ball ) ball.resize(scale);
   init_walls();
   redraw();
@@ -214,6 +260,7 @@ function shoot(e) {
 }
 function fire(e) {
   playground.removeEventListener('mousemove',shoot);
+  playground.removeEventListener('mouseup',fire);
   start();
 }
 function start() {
@@ -235,7 +282,7 @@ function start() {
     }
     steps += 1;
 
-    let dist = timestamp - previous;
+    let dist = (timestamp - previous)/4;
     ball.move(dist);
     redraw();
 
