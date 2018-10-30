@@ -41,11 +41,40 @@ html, body {
   font: menu;
   font-weight: bold;
 }
+#won, #lost {
+  display: none;
+  position: absolute;
+  height: 4em;
+  top: calc(50vh - 2em);
+  text-align: center;
+  font-size: 3vmin;
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 0 #fff;
+  border-radius: 1vmin;
+}
+#lost {
+  width:10em;
+  line-height: 4em;
+  left: calc(50vw - 5em);
+  background-color: #f42;
+  color: #ecc;
+  box-shadow: inset 0 0 3px #300, 5px 5px 5px rgba(60,0,0,0.6);
+}
+#won {
+  width:13em;
+  line-height: 2em;
+  left: calc(50vw - 6.5em);
+  background-color: #192;
+  color: #cec;
+  box-shadow: inset 0 0 3px #300, 5px 5px 5px rgba(0,60,10,0.6);
+}
 
 </style>
 
 <div id="board"></div>
 <canvas id="playground"></canvas>
+<div id="lost">Game Over !</div>
+<div id="won">Congratulations<br>you won !</div>
 
 <script>
 var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-width'),10)
@@ -54,7 +83,7 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , launcher = null
   , blocksize = 0
   , blocks = []
-  , nballs = 3
+  , nballs = 1
   , balls = []
   , radius = 0
   , walls = []
@@ -76,13 +105,13 @@ class Ball {
       , info = walls.reduce((i,w) => w.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0, o:null})
     ;
     if ( info.minm < 1 ) { // bounce on wall
-      if ( info.o ) info.o.hit();
+      if ( info.o ) info.o.hit(this);
       this.bounce(dx, dy, info.minm, info.nx, info.ny);
       return;
     }
     info = corners.reduce((i,c) => c.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0, o:null});
     if ( info.minm < 1 ) { // bounce on corner
-      if ( info.o ) info.o.hit();
+      if ( info.o ) info.o.hit(this);
       this.bounce(dx, dy, info.minm, info.nx, info.ny);
       return;
     }
@@ -202,7 +231,6 @@ class Sphere {
     else if ( m1 < 0 || m1 > 1 ) m = m2
     else m = Math.min(m1,m2);
     let n = this.normal(cx + m*jx, cy + m*jy);
-    if ( m < info.minm) console.log(info.ball, this, cx+m*jx, cy+m*jy, n);
     return m < info.minm ? {...info, minm:m, ...n, o:this.owner} : info;
   }
   normal(x,y) {
@@ -261,7 +289,7 @@ class Block {
     this.elt.style.lineHeight = blocksize+'px';
     this.elt.style.fontSize = (blocksize/3)+'px';
   }
-  hit() {
+  hit(ball) {
     this.level = this.level - 1;
     this.elt.textContent = this.level;
     if ( this.level < 1 ) {
@@ -276,25 +304,54 @@ function init_consts() {
 function initialize() {
   init_consts();
   launcher = new Launcher(playground);
-  blocks = [ new Block(3,3) ]
+  update_blocks();
   resize();
 }
+function update_blocks() {
+  blocks.forEach(b => b.row += 1);
+  let num = 4 + random_int(2)
+    , available_cols = [1, 2, 3, 4, 5, 6, 7]
+  ;
+  for ( let n=0; n < num; n++ ) {
+    let i = random_int(available_cols.length);
+    let col = available_cols[i-1];
+    blocks.push(new Block(col,2));
+    available_cols.splice(i-1,1);
+  }
+}
+function random_int(max) {
+  var n = Math.ceil(Math.random() * max);
+  return n;
+}
+
 function init_obstacles() {
   // playground borders
   walls = [
     new Wall(null,0,0, playground.width,0),
     new Wall(null,playground.width,0, playground.width,playground.height),
-    new Wall(null,playground.width,playground.height, 0,playground.height),
+    new Wall(bottom(),playground.width,playground.height, 0,playground.height),
     new Wall(null,0,playground.height, 0,0)
   ];
   walls = blocks.reduce((w,b) => b.walls(w),walls);
   corners = blocks.reduce((c,b) => b.corners(c),corners);
+}
+function bottom() {
+  return {
+    hit: function(ball) {
+      balls.splice(balls.indexOf(ball),1);
+      if ( balls.length < 1 ) {
+        stop();
+        next_level();
+      }
+    }
+  }
 }
 function remove_block(b) {
   blocks.splice(blocks.indexOf(b),1);
   walls.filter(w => w.owner == b).forEach(w => walls.splice(walls.indexOf(w),1));
   corners.filter(c => c.owner == b).forEach(c => corners.splice(corners.indexOf(c),1));
   b.elt.parentNode.removeChild(b.elt);
+  if ( blocks.length < 1 ) game_over(won);
 }
 function resize() {
   let scale = playground.clientWidth/playground.width;
@@ -345,15 +402,20 @@ function fire(e) {
   start();
 }
 function start() {
-  var start = null
+  var steps = 0
+    , start = null
     , previous = null
-    , steps = 0
+    , launched_balls = 0
   ;
   state = 'playing';
   balls = [];
   requestAnimationFrame(nextStep);
 
   // inlined to use closure
+  function launch_ball() {
+    balls.push(new Ball);
+    launched_balls += 1;
+  }
   function nextStep(timestamp) {
     if ( !start ) {
       start = timestamp;
@@ -361,27 +423,22 @@ function start() {
     }
     steps += 1;
 
-    if ( balls.length < nballs ) {
-      if (balls.length == 0) {
-        balls.push(new Ball);
-      }
+    if ( launched_balls < nballs ) {
+      if (balls.length == 0) launch_ball();
       else {
         let ball = balls[balls.length-1]
           , dx = ball.x - launcher.x
           , dy = ball.y - launcher.y
           , d = Math.sqrt(dx*dx + dy*dy)
         ;
-        if ( d > radius*3 ) balls.push(new Ball);
+        if ( d > radius*3 ) launch_ball();
       }
     }
     let dist = (timestamp - previous)/2;
     balls.forEach(b => b.move(dist));
     redraw();
 
-    if ( balls.every(b => (b.y < playground.height - 2*radius)) ) {
-      requestAnimationFrame(nextStep);
-    }
-    else stop();
+    if ( state == 'playing' ) requestAnimationFrame(nextStep);
     previous = timestamp;
   }
 }
@@ -389,9 +446,42 @@ function stop() {
   state = 'waiting';
   playground.addEventListener('mousedown',start_shooting);
 }
+function next_level() {
+  level += 1;
+  nballs += 1;
+  update_blocks();
+  if ( blocks.filter(b => b.row > 9).length > 0 ) game_over(lost);
+  else {
+    blocks.forEach(b => b.resize());
+    init_obstacles();
+    redraw();
+  }
+}
+function game_over(elt) {
+  state = 'game over';
+  elt.style.display = 'block';
+  playground.removeEventListener('mousedown',start_shooting);
+}
+function new_game() {
+  blocks.forEach(b => b.elt.parentNode.removeChild(b.elt));
+  blocks = [];
+  nballs = 1;
+  balls = [];
+  radius = 0;
+  walls = [];
+  corners = [];
+  level = 1;
+  update_blocks();
+  resize();
+  playground.addEventListener('mousedown',start_shooting);
+  lost.style.display='none';
+  won.style.display='none';
+}
 
 initialize();
 window.onresize = resize;
 playground.addEventListener('mousedown',start_shooting);
+lost.addEventListener('click',new_game);
+won.addEventListener('click',new_game);
 
 </script>
