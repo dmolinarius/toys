@@ -248,6 +248,7 @@ class Block {
     this.elt = document.createElement('div');
     this.elt.textContent = this.level
     this.elt.className = 'block';
+    this.repaint()
     this.resize();
     window.board.appendChild(this.elt);
   }
@@ -289,13 +290,32 @@ class Block {
     this.elt.style.lineHeight = blocksize+'px';
     this.elt.style.fontSize = (blocksize/3)+'px';
   }
+  repaint() {
+    var color, c;
+    if ( this.level < 9 ) {
+      c = 8*(this.level-1);
+      color = rgb(192+c,192-c,192-c);
+    }
+    else if ( this.level < 17 ) {
+      c = 16*(this.level-9);
+      color = rgb(256,128,128+c);
+    }
+    else if ( this.level < 25 ) {
+      c = 16*(this.level-17);
+      color = rgb(256-c,128,256);
+    }
+    else color = 'white';
+    this.elt.style.backgroundColor = color;
+  }
   hit(ball) {
     this.level = this.level - 1;
     this.elt.textContent = this.level;
-    if ( this.level < 1 ) {
-      remove_block(this);
-    }
+    if ( this.level < 1 ) remove_block(this);
+    else this.repaint();
   }
+}
+function rgb(r,g,b) {
+  return 'rgb('+r+','+g+','+b+')';
 }
 function init_consts() {
   blocksize = playground.width / 7;
@@ -379,7 +399,7 @@ function start_shooting(e) {
 }
 function shoot(e) {
   var x = e.layerX - bw
-    , y = Math.min(launcher.y, e.layerY - bw)
+    , y = Math.min(launcher.y - radius, e.layerY - bw)
   ;
   state = 'shooting';
 
@@ -409,6 +429,7 @@ function start() {
   ;
   state = 'playing';
   balls = [];
+  playground.addEventListener('click',home);
   requestAnimationFrame(nextStep);
 
   // inlined to use closure
@@ -423,7 +444,7 @@ function start() {
     }
     steps += 1;
 
-    if ( launched_balls < nballs ) {
+    if ( state=='playing' && launched_balls < nballs ) {
       if (balls.length == 0) launch_ball();
       else {
         let ball = balls[balls.length-1]
@@ -442,6 +463,16 @@ function start() {
     previous = timestamp;
   }
 }
+function home(e) {
+  var x = e.layerX - bw
+    , y = e.layerY - bw
+  ;
+  if ( y < 9*blocksize ) return;
+  if ( x < 3*blocksize || x > 4*blocksize ) return;
+  stop();
+  balls = [];
+  next_level();
+}
 function stop() {
   state = 'waiting';
   playground.addEventListener('mousedown',start_shooting);
@@ -449,9 +480,9 @@ function stop() {
 function next_level() {
   level += 1;
   nballs += 1;
-  update_blocks();
-  if ( blocks.filter(b => b.row > 9).length > 0 ) game_over(lost);
+  if ( blocks.filter(b => b.row > 8).length > 0 ) game_over(lost);
   else {
+    update_blocks();
     blocks.forEach(b => b.resize());
     init_obstacles();
     redraw();
