@@ -16,10 +16,10 @@ html, body {
 
 #board, #playground {
   position: absolute;
-  width: 70vmin;
+  width: 63vmin;
   height: 90vmin;
   top: calc(50vh - 45vmin);
-  left: calc(50vw - 35vmin - 2.5px);
+  left: calc(50vw - 31.5vmin - 2.5px);
   border-radius: 3px;
   border: 5px solid #400;
 }
@@ -53,6 +53,7 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , ball = null
   , radius = 0
   , walls = []
+  , corners = []
 ;
 
 class Ball {
@@ -61,20 +62,25 @@ class Ball {
     this.x = launcher.x;
     this.y = launcher.y;
     this.directx = Math.sin(launcher.angle);
-    this.directy = Math.cos(launcher.angle);
+    this.directy = -Math.cos(launcher.angle);
   }
   move(dist) {
     let dx = dist * this.directx
-      , dy = - dist * this.directy
-      , info = walls.reduce((o,w) => w.check_bounce(o), { minm:2, ball:this, dx, dy, nx:0, ny:0})
+      , dy = dist * this.directy
+      , info = walls.reduce((i,w) => w.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0})
     ;
-    if ( info.minm < 1 ) { // we should bounce
+    if ( info.minm < 1 ) { // bounce on wall
       this.bounce(dx, dy, info.minm, info.nx, info.ny);
+      return;
     }
-    else { // no bounce
-      this.x += dx;
-      this.y += dy;
+    info = corners.reduce((i,c) => c.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0});
+    if ( info.minm < 1 ) { // bounce on corner
+      this.bounce(dx, dy, info.minm, info.nx, info.ny);
+      return;
     }
+    // no bounce, just move
+    this.x += dx;
+    this.y += dy;
   }
   bounce(dx, dy, m, nx, ny) {
     // bounce point
@@ -164,6 +170,40 @@ class Wall {
     return info;
   }
 }
+class Sphere {
+  constructor(x,y,r) {
+    Object.assign(this,{x, y, r});
+    this.r2 = this.r * this.r;
+  }
+  check_bounce(info) {
+    let cx = info.ball.x, cy = info.ball.y, jx = info.dx, jy = info.dy
+      , cmox = cx - this.x, cmoy = cy - this.y
+      , a = jx*jx + jy*jy
+      , b = 2*(cmox*jx + cmoy*jy)
+      , c = cmox*cmox + cmoy*cmoy - this.r2
+      , delta = b*b - 4*a*c
+    ;
+    if ( delta < 0 ) return info;
+    let sqd = Math.sqrt(delta)
+      , m1 = (-b-sqd)/2/a
+      , m2 = (-b+sqd)/2/a
+    ;
+    if ( (m1 < 0 || m1 > 1) && (m2 < 0 || m2 > 1) ) return info;
+    let m;
+    if ( m2 < 0 || m2 > 1) m = m1;
+    else if ( m1 < 0 || m1 > 1 ) m = m2
+    else m = Math.min(m1,m2);
+    let n = this.normal(cx + m*jx, cy + m*jy);
+    if ( m < info.minm) console.log(info.ball, this, cx+m*jx, cy+m*jy, n);
+    return m < info.minm ? {...info, minm:m, ...n} : info;
+  }
+  normal(x,y) {
+    return {
+      nx: (x - this.x)/this.r,
+      ny: (y - this.y)/this.r
+    }
+  }
+}
 class Block {
   constructor(col,row) {
     this.col = col;
@@ -173,21 +213,34 @@ class Block {
     this.resize();
     window.board.appendChild(this.elt);
   }
+  coords() {
+    return{
+      x1: (this.col-1)*blocksize,
+      y1: (this.row-1)*blocksize,
+      x2: (this.col  )*blocksize,
+      y2: (this.row-1)*blocksize,
+      x3: (this.col  )*blocksize,
+      y3: (this.row  )*blocksize,
+      x4: (this.col-1)*blocksize,
+      y4: (this.row  )*blocksize
+    };
+  }
   walls(a) {
-    let x1 = (this.col-1)*blocksize
-      , y1 = (this.row-1)*blocksize
-      , x2 = (this.col  )*blocksize
-      , y2 = (this.row-1)*blocksize
-      , x3 = (this.col  )*blocksize
-      , y3 = (this.row  )*blocksize
-      , x4 = (this.col-1)*blocksize
-      , y4 = (this.row  )*blocksize
-    ;
+    let c = this.coords();
     return a.concat([
-      new Wall(x1,y1,x4,y4),
-      new Wall(x4,y4,x3,y3),
-      new Wall(x3,y3,x2,y2),
-      new Wall(x2,y2,x1,y1)
+      new Wall(c.x1,c.y1,c.x4,c.y4),
+      new Wall(c.x4,c.y4,c.x3,c.y3),
+      new Wall(c.x3,c.y3,c.x2,c.y2),
+      new Wall(c.x2,c.y2,c.x1,c.y1)
+    ]);
+  }
+  corners(a) {
+    let c = this.coords();
+    return a.concat([
+      new Sphere(c.x1,c.y1,radius),
+      new Sphere(c.x2,c.y2,radius),
+      new Sphere(c.x3,c.y3,radius),
+      new Sphere(c.x4,c.y4,radius)
     ]);
   }
   resize() {
@@ -197,14 +250,17 @@ class Block {
     this.elt.style.height = blocksize+'px';
   }
 }
-function initialize() {
+function init_consts() {
   blocksize = playground.width / 7;
-  radius = playground.width / 28;
+  radius = playground.width / 40;
+}
+function initialize() {
+  init_consts();
   launcher = new Launcher(playground);
   blocks = [ new Block(3,3) ]
   resize();
 }
-function init_walls() {
+function init_obstacles() {
   // playground borders
   walls = [
     new Wall(0,0, playground.width,0),
@@ -213,17 +269,17 @@ function init_walls() {
     new Wall(0,playground.height, 0,0)
   ];
   walls = blocks.reduce((w,b) => b.walls(w),walls);
+  corners = blocks.reduce((c,b) => b.corners(c),corners);
 }
 function resize() {
   let scale = playground.clientWidth/playground.width;
   playground.width = playground.clientWidth;
   playground.height = playground.clientHeight;
-  blocksize = playground.width / 7;
-  radius = playground.width / 28;
+  init_consts();
   launcher.resize(playground);
   blocks.forEach(b => b.resize());
   if ( ball ) ball.resize(scale);
-  init_walls();
+  init_obstacles();
   redraw();
 }
 function redraw() {
@@ -282,7 +338,7 @@ function start() {
     }
     steps += 1;
 
-    let dist = (timestamp - previous)/4;
+    let dist = (timestamp - previous)/2;
     ball.move(dist);
     redraw();
 
