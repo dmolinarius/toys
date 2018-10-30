@@ -88,6 +88,7 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , ctx = playground.getContext('2d') // canvas context
   , state = 'waiting' // app state
   , launcher = null   // launcher object
+  , next_pos          // next launcher position
   , blocksize = 0     // cell size
   , blocks = []       // list of block objects
   , nballs = 1        // current number of balls
@@ -188,10 +189,11 @@ class Ball {
 class Launcher {
 
   /*
-  ** Create Launcher (p is playground)
+  ** Create Launcher
   */
-  constructor(p) {
-    this.resize(p);
+  constructor() {
+    this.position = 0.5;
+    this.resize();
     this.angle = 0;
   }
 
@@ -203,11 +205,20 @@ class Launcher {
   }
 
   /*
+  ** Move launcher
+  */
+  move(x) {
+    this.x = x;
+    this.angle = 0;
+    this.position = x / playground.width;
+  }
+
+  /*
   ** Resize Launcher (p is playground)
   */
-  resize(p) {
-    this.x = p.width/2;
-    this.y = p.height - 3*radius;
+  resize() {
+    this.x = this.position * playground.width;
+    this.y = playground.height - 3*radius;
   }
 
   /*
@@ -435,10 +446,13 @@ class Block {
 var color_palette = [
   { i: 1 },
   { i: 9,  f: l =>  8*l, color: c => rgb(192+c,192-c,192-c) },
-  { i: 17, f: l => 16*l, color: c => rgb(256,128,128+c) },
-  { i: 25, f: l => 16*l, color: c => rgb(256-c,128,256) },
-  { i: 33, f: l =>  8*l, color: c => rgb(128-2*c,128+c,256-3*c) },
-  { i: 41, f: l =>  8*l, color: c => rgb(3*c,192-c,64) },
+  { i: 17, f: l => 16*l, color: c => rgb(255,128,128+c) },
+  { i: 25, f: l => 16*l, color: c => rgb(255-c,128,255) },
+  { i: 33, f: l =>  8*l, color: c => rgb(128-2*c,128+c,255-3*c) },
+  { i: 41, f: l =>  8*l, color: c => rgb(4*c,192+c,64-c) },
+  { i: 49, f: l => 16*l, color: c => rgb(255,255-c,0) },
+  { i: 57, f: l => 16*l, color: c => rgb(255,128-c,0) },
+  { i: 71, f: l => 16*l, color: c => rgb(255-c,0,c) },
 ];
 
 /*
@@ -483,6 +497,17 @@ function update_blocks() {
 }
 
 /*
+** not used in normal use - debug block palette
+*/
+function test_palette() {
+  for ( let row = 0; row <10 ; row++ ) {
+    for ( let col = 0; col < 7; col++ ) {
+      blocks.push(new Block(col+1,row+1, 1 + row*7 + col));
+    }
+  }
+}
+
+/*
 ** Helper function, return a random integer
 */
 function random_int(max) {
@@ -512,6 +537,7 @@ function init_obstacles() {
 function bottom() {
   return {
     hit: function(ball) {
+      if ( next_pos === undefined ) next_pos = ball.x;
       balls.splice(balls.indexOf(ball),1);
       if ( balls.length < 1 ) {
         stop();
@@ -686,6 +712,8 @@ function next_level() {
   nballs += 1;
   if ( blocks.filter(b => b.row > 8).length > 0 ) game_over(lost);
   else {
+    launcher.move(next_pos);
+    next_pos = undefined;
     update_blocks();
     blocks.forEach(b => b.resize());
     init_obstacles();
@@ -707,6 +735,7 @@ function game_over(elt) {
 */
 function new_game() {
   blocks.forEach(b => b.elt.parentNode.removeChild(b.elt));
+  next_pos = undefined;
   blocks = [];
   nballs = 1;
   balls = [];
