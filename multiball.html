@@ -68,11 +68,20 @@ html, body {
   color: #cec;
   box-shadow: inset 0 0 3px #300, 5px 5px 5px rgba(0,60,10,0.6);
 }
+#level_display {
+  color: rgba(255,255,255,0.6);
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  line-height: 9vmin;
+}
 
 </style>
 
 <!-- where blocks live -->
-<div id="board"></div>
+<div id="board">
+  <div id="level_display">level 1</div>
+</div>
 
 <!-- where launcher & balls live -->
 <canvas id="playground"></canvas>
@@ -708,10 +717,11 @@ function stop() {
 ** prepare next turn
 */
 function next_level() {
-  level += 1;
-  nballs += 1;
   if ( blocks.filter(b => b.row > 8).length > 0 ) game_over(lost);
   else {
+    level += 1;
+    nballs += 1;
+    level_display.textContent = 'level '+level;
     launcher.move(next_pos);
     next_pos = undefined;
     update_blocks();
@@ -743,6 +753,7 @@ function new_game() {
   walls = [];
   corners = [];
   level = 1;
+  level_display.textContent = 'level '+level;
   update_blocks();
   resize();
   playground.addEventListener('mousedown',start_shooting);
