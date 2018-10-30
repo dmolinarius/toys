@@ -36,6 +36,10 @@ html, body {
   position: absolute;
   background-color: #ccc;
   box-shadow: inset 0 0 3px black;
+  line-height: 100%;
+  text-align: center;
+  font: menu;
+  font-weight: bold;
 }
 
 </style>
@@ -50,10 +54,12 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , launcher = null
   , blocksize = 0
   , blocks = []
-  , ball = null
+  , nballs = 3
+  , balls = []
   , radius = 0
   , walls = []
   , corners = []
+  , level = 1
 ;
 
 class Ball {
@@ -67,14 +73,16 @@ class Ball {
   move(dist) {
     let dx = dist * this.directx
       , dy = dist * this.directy
-      , info = walls.reduce((i,w) => w.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0})
+      , info = walls.reduce((i,w) => w.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0, o:null})
     ;
     if ( info.minm < 1 ) { // bounce on wall
+      if ( info.o ) info.o.hit();
       this.bounce(dx, dy, info.minm, info.nx, info.ny);
       return;
     }
-    info = corners.reduce((i,c) => c.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0});
+    info = corners.reduce((i,c) => c.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0, o:null});
     if ( info.minm < 1 ) { // bounce on corner
+      if ( info.o ) info.o.hit();
       this.bounce(dx, dy, info.minm, info.nx, info.ny);
       return;
     }
@@ -131,8 +139,8 @@ class Launcher {
   }
 }
 class Wall {
-  constructor(x1,y1,x2,y2) {
-    Object.assign(this,{x1, y1, x2, y2});
+  constructor(owner, x1,y1,x2,y2) {
+    Object.assign(this,{owner, x1, y1, x2, y2});
 
     // vector
     this.ix = this.x2 - this.x1;
@@ -165,14 +173,14 @@ class Wall {
       , k = (jy*(cx-ax)+jx*(ay-cy))/d
     ;
     if ( m > 0 && m < 1 && k > 0 && k < 1 ) {
-      if ( m < info.minm) return {...info, minm:m, nx:this.nx, ny:this.ny};
+      if ( m < info.minm) return {...info, minm:m, nx:this.nx, ny:this.ny, o:this.owner};
     }
     return info;
   }
 }
 class Sphere {
-  constructor(x,y,r) {
-    Object.assign(this,{x, y, r});
+  constructor(owner, x,y,r) {
+    Object.assign(this,{owner, x, y, r});
     this.r2 = this.r * this.r;
   }
   check_bounce(info) {
@@ -195,7 +203,7 @@ class Sphere {
     else m = Math.min(m1,m2);
     let n = this.normal(cx + m*jx, cy + m*jy);
     if ( m < info.minm) console.log(info.ball, this, cx+m*jx, cy+m*jy, n);
-    return m < info.minm ? {...info, minm:m, ...n} : info;
+    return m < info.minm ? {...info, minm:m, ...n, o:this.owner} : info;
   }
   normal(x,y) {
     return {
@@ -206,9 +214,11 @@ class Sphere {
 }
 class Block {
   constructor(col,row) {
+    this.level = level;
     this.col = col;
     this.row = row;
     this.elt = document.createElement('div');
+    this.elt.textContent = this.level
     this.elt.className = 'block';
     this.resize();
     window.board.appendChild(this.elt);
@@ -228,19 +238,19 @@ class Block {
   walls(a) {
     let c = this.coords();
     return a.concat([
-      new Wall(c.x1,c.y1,c.x4,c.y4),
-      new Wall(c.x4,c.y4,c.x3,c.y3),
-      new Wall(c.x3,c.y3,c.x2,c.y2),
-      new Wall(c.x2,c.y2,c.x1,c.y1)
+      new Wall(this,c.x1,c.y1,c.x4,c.y4),
+      new Wall(this,c.x4,c.y4,c.x3,c.y3),
+      new Wall(this,c.x3,c.y3,c.x2,c.y2),
+      new Wall(this,c.x2,c.y2,c.x1,c.y1)
     ]);
   }
   corners(a) {
     let c = this.coords();
     return a.concat([
-      new Sphere(c.x1,c.y1,radius),
-      new Sphere(c.x2,c.y2,radius),
-      new Sphere(c.x3,c.y3,radius),
-      new Sphere(c.x4,c.y4,radius)
+      new Sphere(this,c.x1,c.y1,radius),
+      new Sphere(this,c.x2,c.y2,radius),
+      new Sphere(this,c.x3,c.y3,radius),
+      new Sphere(this,c.x4,c.y4,radius)
     ]);
   }
   resize() {
@@ -248,6 +258,15 @@ class Block {
     this.elt.style.top = (this.row-1)*blocksize+'px';
     this.elt.style.width = blocksize+'px';
     this.elt.style.height = blocksize+'px';
+    this.elt.style.lineHeight = blocksize+'px';
+    this.elt.style.fontSize = (blocksize/3)+'px';
+  }
+  hit() {
+    this.level = this.level - 1;
+    this.elt.textContent = this.level;
+    if ( this.level < 1 ) {
+      remove_block(this);
+    }
   }
 }
 function init_consts() {
@@ -263,13 +282,19 @@ function initialize() {
 function init_obstacles() {
   // playground borders
   walls = [
-    new Wall(0,0, playground.width,0),
-    new Wall(playground.width,0, playground.width,playground.height),
-    new Wall(playground.width,playground.height, 0,playground.height),
-    new Wall(0,playground.height, 0,0)
+    new Wall(null,0,0, playground.width,0),
+    new Wall(null,playground.width,0, playground.width,playground.height),
+    new Wall(null,playground.width,playground.height, 0,playground.height),
+    new Wall(null,0,playground.height, 0,0)
   ];
   walls = blocks.reduce((w,b) => b.walls(w),walls);
   corners = blocks.reduce((c,b) => b.corners(c),corners);
+}
+function remove_block(b) {
+  blocks.splice(blocks.indexOf(b),1);
+  walls.filter(w => w.owner == b).forEach(w => walls.splice(walls.indexOf(w),1));
+  corners.filter(c => c.owner == b).forEach(c => corners.splice(corners.indexOf(c),1));
+  b.elt.parentNode.removeChild(b.elt);
 }
 function resize() {
   let scale = playground.clientWidth/playground.width;
@@ -278,14 +303,14 @@ function resize() {
   init_consts();
   launcher.resize(playground);
   blocks.forEach(b => b.resize());
-  if ( ball ) ball.resize(scale);
+  balls.forEach(b => b.resize(scale));
   init_obstacles();
   redraw();
 }
 function redraw() {
   erase();
   launcher.draw(ctx);
-  if ( ball ) ball.draw(ctx);
+  balls.forEach(b => b.draw(ctx));
 }
 function erase() {
   ctx.clearRect(0,0,playground.width,playground.height);
@@ -325,9 +350,7 @@ function start() {
     , steps = 0
   ;
   state = 'playing';
-  ball = new Ball();
-  erase();
-  launcher.draw(ctx);
+  balls = [];
   requestAnimationFrame(nextStep);
 
   // inlined to use closure
@@ -338,11 +361,24 @@ function start() {
     }
     steps += 1;
 
+    if ( balls.length < nballs ) {
+      if (balls.length == 0) {
+        balls.push(new Ball);
+      }
+      else {
+        let ball = balls[balls.length-1]
+          , dx = ball.x - launcher.x
+          , dy = ball.y - launcher.y
+          , d = Math.sqrt(dx*dx + dy*dy)
+        ;
+        if ( d > radius*3 ) balls.push(new Ball);
+      }
+    }
     let dist = (timestamp - previous)/2;
-    ball.move(dist);
+    balls.forEach(b => b.move(dist));
     redraw();
 
-    if ( ball.y < playground.height - 2*radius) {
+    if ( balls.every(b => (b.y < playground.height - 2*radius)) ) {
       requestAnimationFrame(nextStep);
     }
     else stop();
