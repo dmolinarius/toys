@@ -27,12 +27,13 @@ html, body {
   background-color: #844;
   height: 90vmin;
   box-shadow: 1vw 1vh 1vmax #420;
+  background: linear-gradient(#020, #003800);
 }
 #playground {
   border: 5px solid #400;
   background-color: transparent;
   height: 80vmin;
-  box-shadow: inset -1px -1px 2px #a66, inset 1px 1px 2px #400;
+  box-shadow: inset -1px -1px 2px #800, inset 1px 1px 2px #400;
 }
 .block {
   position: absolute;
@@ -45,13 +46,13 @@ html, body {
 }
 #won, #lost {
   display: none;
+  cursor: pointer;
   position: absolute;
   height: 4em;
   top: calc(50vh - 2em);
   text-align: center;
   font-size: 3vmin;
   letter-spacing: 0.1em;
-  text-shadow: 0 1px 0 #fff;
   border-radius: 1vmin;
 }
 #lost {
@@ -61,14 +62,18 @@ html, body {
   background-color: #f42;
   color: #ecc;
   box-shadow: inset 0 0 3px #300, 5px 5px 5px rgba(60,0,0,0.6);
+  background: linear-gradient(#a00,#f42,#a00);
 }
 #won {
   width:13em;
-  line-height: 2em;
+  padding-top: 0.7em;
+  box-sizing: border-box;
+  line-height: 1.33em;
   left: calc(50vw - 6.5em);
   background-color: #192;
   color: #cec;
-  box-shadow: inset 0 0 3px #300, 5px 5px 5px rgba(0,60,10,0.6);
+  box-shadow: inset 0 0 3px #300, 5px 5px 5px rgba(0,30,10,0.6);
+  background: linear-gradient(#050,#192,#050);
 }
 #level_label {
   color: rgba(255,255,255,0.6);
@@ -82,11 +87,12 @@ html, body {
   bottom: 0;
   width: 100%;
   height: calc(10vmin - 3px);
-  background: linear-gradient(#a88, #ccc, #888);
+  background: linear-gradient(#898, #ccc, #888);
   box-shadow: inset 0 0 5px black;
   border: none;
 }
 #home_button {
+  cursor: default;
   position: absolute;
   width: 3em;
   height: 1.33em;
@@ -673,6 +679,7 @@ function fire(e) {
   state = 'playing';
   balls = [];
   home_button.addEventListener('click',home);
+  home_button.style.cursor = 'pointer';
   requestAnimationFrame(nextStep);
 
   /*
@@ -723,6 +730,8 @@ function fire(e) {
 ** end current turn by recalling all moving balls home
 */
 function home(e) {
+  home_button.removeEventListener('click',home);
+  home_button.style.cursor = 'default';
   stop();
   balls = [];
   next_level();
