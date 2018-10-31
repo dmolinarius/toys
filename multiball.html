@@ -537,7 +537,7 @@ function init_obstacles() {
   ];
   // blocks
   walls = blocks.reduce((w,b) => b.walls(w),walls);
-  corners = blocks.reduce((c,b) => b.corners(c),corners);
+  corners = blocks.reduce((c,b) => b.corners(c),[]);
 }
 
 /*
@@ -548,6 +548,7 @@ function bottom() {
     hit: function(ball) {
       if ( next_pos === undefined ) next_pos = ball.x;
       balls.splice(balls.indexOf(ball),1);
+      delete ball;
       if ( balls.length < 1 ) {
         stop();
         next_level();
@@ -560,10 +561,11 @@ function bottom() {
 ** Remove a block from list of blocks, as well as his walls, corners and DOM element
 */
 function remove_block(b) {
+  walls.filter(w => w.owner == b).forEach(w => {walls.splice(walls.indexOf(w),1); delete w});
+  corners.filter(c => c.owner == b).forEach(c => {corners.splice(corners.indexOf(c),1); delete c});
   blocks.splice(blocks.indexOf(b),1);
-  walls.filter(w => w.owner == b).forEach(w => walls.splice(walls.indexOf(w),1));
-  corners.filter(c => c.owner == b).forEach(c => corners.splice(corners.indexOf(c),1));
   b.elt.parentNode.removeChild(b.elt);
+  delete b;
   if ( blocks.length < 1 ) game_over(won);
 }
 
@@ -681,7 +683,7 @@ function fire(e) {
     }
 
     // move all balls forward and redraw
-    let dist = (timestamp - previous)/2;
+    let dist = (timestamp - previous)*playground.width/800;
     balls.forEach(b => b.move(dist));
     redraw();
 
