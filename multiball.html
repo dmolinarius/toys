@@ -104,6 +104,29 @@ html, body {
   box-shadow: 0 0 2px black, inset 0 0 2px #777;
   border: 2px solid transparent;
 }
+#speed_box {
+  height: 100%;
+  position: absolute;
+  width: calc(50% - 2.5em);
+  right: 0;
+}
+input {
+  width: 80%;
+  display: block;
+  position: absolute;
+  top: 1.5em;
+}
+label {
+  font-size: 0.8em;
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 0.33em;
+}
+output {
+  display: inline;
+  font-size: 0.8em;
+}
 
 </style>
 
@@ -112,6 +135,10 @@ html, body {
   <div id="level_label">level 1</div>
   <div id='toolbox'>
    <div id='home_button'>Home</div>
+   <div id='speed_box'>
+    <label for="speed_input">speed <output id="speed_value"></output></label>
+    <input type="range" id='speed_input' name="speed_input" min="10" max="100" value="40">
+   </div>
   </div>
 </div>
 
@@ -138,6 +165,7 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , walls = []        // list of wall objects, computed from borders and blocks
   , corners = []      // list of Sphere objects, corresponding to block corners
   , level = 1         // current player level
+  , speed             // animation speed;
 ;
 
 /* ****************************************************************************
@@ -511,6 +539,7 @@ function initialize() {
   launcher = new Launcher(playground);
   update_blocks();
   resize();
+  change_speed();
 }
 
 /*
@@ -716,7 +745,7 @@ function fire(e) {
     }
 
     // move all balls forward and redraw
-    let dist = (timestamp - previous)*playground.width/800;
+    let dist = (timestamp - previous) * speed;
     balls.forEach(b => b.move(dist));
     redraw();
 
@@ -794,11 +823,20 @@ function new_game() {
 }
 
 /*
+** change animation speed - event handler
+*/
+function change_speed() {
+  speed = speed_input.value * playground.width/20000;
+  speed_value.textContent = speed_input.value;
+}
+
+/*
 ** main program
 */
 initialize();
 window.onresize = resize;
 playground.addEventListener('mousedown',start_shooting);
+speed_input.addEventListener('input',change_speed);
 lost.addEventListener('click',new_game);
 won.addEventListener('click',new_game);
 
