@@ -16,8 +16,7 @@ html, body {
 
 #board, #playground {
   position: absolute;
-  width: 63vmin;
-  height: 90vmin;
+  width: 56vmin;
   top: calc(50vh - 45vmin);
   left: calc(50vw - 31.5vmin - 2.5px);
   border-radius: 3px;
@@ -25,12 +24,15 @@ html, body {
 }
 
 #board {
-  box-shadow: 1vw 1vh 1vmax #420;
   background-color: #844;
+  height: 90vmin;
+  box-shadow: 1vw 1vh 1vmax #420;
 }
 #playground {
   border: 5px solid #400;
   background-color: transparent;
+  height: 80vmin;
+  box-shadow: inset -1px -1px 2px #a66, inset 1px 1px 2px #400;
 }
 .block {
   position: absolute;
@@ -68,19 +70,43 @@ html, body {
   color: #cec;
   box-shadow: inset 0 0 3px #300, 5px 5px 5px rgba(0,60,10,0.6);
 }
-#level_display {
+#level_label {
   color: rgba(255,255,255,0.6);
   position: absolute;
   width: 100%;
   text-align: center;
   line-height: 9vmin;
 }
+#toolbox {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: calc(10vmin - 3px);
+  background: linear-gradient(#a88, #ccc, #888);
+  box-shadow: inset 0 0 5px black;
+  border: none;
+}
+#home_button {
+  position: absolute;
+  width: 3em;
+  height: 1.33em;
+  line-height: 1.33em;
+  left: calc(50% - 1.5em);
+  top: calc(5vmin - 0.7em);
+  text-align:center;
+  border-radius: 3px;
+  box-shadow: 0 0 2px black, inset 0 0 2px #777;
+  border: 2px solid transparent;
+}
 
 </style>
 
 <!-- where blocks live -->
 <div id="board">
-  <div id="level_display">level 1</div>
+  <div id="level_label">level 1</div>
+  <div id='toolbox'>
+   <div id='home_button'>Home</div>
+  </div>
 </div>
 
 <!-- where launcher & balls live -->
@@ -458,10 +484,10 @@ var color_palette = [
   { i: 17, f: l => 16*l, color: c => rgb(255,128,128+c) },
   { i: 25, f: l => 16*l, color: c => rgb(255-c,128,255) },
   { i: 33, f: l =>  8*l, color: c => rgb(128-2*c,128+c,255-3*c) },
-  { i: 41, f: l =>  8*l, color: c => rgb(4*c,192+c,64-c) },
-  { i: 49, f: l => 16*l, color: c => rgb(255,255-c,0) },
-  { i: 57, f: l => 16*l, color: c => rgb(255,128-c,0) },
-  { i: 71, f: l => 16*l, color: c => rgb(255-c,0,c) },
+  { i: 49, f: l =>  4*l, color: c => rgb(4*c,192+c,64-c) },
+  { i: 57, f: l => 16*l, color: c => rgb(255,255-c,0) },
+  { i: 65, f: l => 16*l, color: c => rgb(255,128-c,0) },
+  { i: 80, f: l => 16*l, color: c => rgb(255-c,0,c) },
 ];
 
 /*
@@ -506,7 +532,7 @@ function update_blocks() {
 }
 
 /*
-** not used in normal use - debug block palette
+** not used in normal use - display block color palette
 */
 function test_palette() {
   for ( let row = 0; row <10 ; row++ ) {
@@ -646,7 +672,7 @@ function fire(e) {
   ;
   state = 'playing';
   balls = [];
-  playground.addEventListener('click',home);
+  home_button.addEventListener('click',home);
   requestAnimationFrame(nextStep);
 
   /*
@@ -697,11 +723,6 @@ function fire(e) {
 ** end current turn by recalling all moving balls home
 */
 function home(e) {
-  var x = e.layerX - bw
-    , y = e.layerY - bw
-  ;
-  if ( y < 9*blocksize ) return;
-  if ( x < 3*blocksize || x > 4*blocksize ) return;
   stop();
   balls = [];
   next_level();
@@ -723,8 +744,8 @@ function next_level() {
   else {
     level += 1;
     nballs += 1;
-    level_display.textContent = 'level '+level;
-    launcher.move(next_pos);
+    level_label.textContent = 'level '+level;
+    if ( next_pos !== undefined ) launcher.move(next_pos);
     next_pos = undefined;
     update_blocks();
     blocks.forEach(b => b.resize());
@@ -755,7 +776,7 @@ function new_game() {
   walls = [];
   corners = [];
   level = 1;
-  level_display.textContent = 'level '+level;
+  level_label.textContent = 'level '+level;
   update_blocks();
   resize();
   playground.addEventListener('mousedown',start_shooting);
