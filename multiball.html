@@ -700,13 +700,13 @@ function update_blocks() {
   blocks.forEach(b => b.row += 1);
   let num = 2 + random_int(4)
     , available_cols = [1, 2, 3, 4, 5, 6, 7]
-    , block_types = [ Square, TopLeftTriangle, TopRightTriangle,
-        BottomRightTriangle, BottomLeftTriangle ]
+    , block_types = [ TopLeftTriangle, TopRightTriangle,
+        BottomRightTriangle, BottomLeftTriangle, Square ]
   ;
   for ( let n=0; n < num; n++ ) {
     let i = random_int(available_cols.length)
       , col = available_cols[i-1]
-      , type = block_types[random_int(5)-1];
+      , type = block_types[Math.min(random_int(10)-1,4)]
     ;
     blocks.push(new type(col,2,Math.floor(6*level/num)));
     available_cols.splice(i-1,1);
