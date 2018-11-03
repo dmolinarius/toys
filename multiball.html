@@ -225,10 +225,10 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , launched_balls    // current number of launched balls
   , balls = []        // list of ball objects
   , radius = 0        // ball radius
-  , walls = []        // list of wall objects, computed from borders and blocks
-  , corners = []      // list of Sphere objects, corresponding to block corners
+  , borders = []      // list of borders where balls will bounce
   , level = 1         // current player level
   , speed             // animation speed;
+  , nloop             // debug
 ;
 
 /* ****************************************************************************
@@ -242,7 +242,8 @@ class Ball {
   ** Balls are created with current radius, at launcher position,
   ** and direction depending on launcher orientation
   */
-  constructor() {
+  constructor(id) {
+    this.id = id;
     this.r = 0.8*radius;
     this.x = launcher.x;
     this.y = launcher.y;
@@ -254,41 +255,51 @@ class Ball {
   ** Move ball by given distance, eventually bouncing on obstacles
   */
   move(dist) {
+    nloop = 0;
     let dx = dist * this.directx
       , dy = dist * this.directy
-      , info = walls.reduce((i,w) => w.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0, o:null})
+      , info = this.check_bounce({minm:2, dx, dy, nx:0, ny:0, ball:this, o:null});
     ;
-    if ( info.minm <= 1 ) { // bounce on wall
+    this.x += info.dx;
+    this.y += info.dy;
+  }
+
+  /*
+  ** check if ball will bounce
+  */
+  check_bounce(info) {
+    nloop += 1;
+    info = borders.reduce((info,border) => border.check_bounce(info), info);
+    if ( info.minm <=1 ) {
       if ( info.o ) info.o.hit(this);
-      this.bounce(dx, dy, info.minm, info.nx, info.ny);
-      return;
+      info = this.bounce(info);
+      if ( nloop < 5 ) {
+        info = {...info, minm:2, nx:0, ny:0, o:null};
+        info = this.check_bounce(info);
+      }
     }
-    info = corners.reduce((i,c) => c.check_bounce(i), {minm:2, ball:this, dx, dy, nx:0, ny:0, o:null});
-    if ( info.minm <= 1 ) { // bounce on corner
-      if ( info.o ) info.o.hit(this);
-      this.bounce(dx, dy, info.minm, info.nx, info.ny);
-      return;
-    }
-    // no bounce, just move
-    this.x += dx;
-    this.y += dy;
+    return info;
   }
 
   /*
   ** Compute new position after boucing
   */
-  bounce(dx, dy, m, nx, ny) {
-    // contact point
-    let px = this.x + m * dx
-      , py = this.y + m * dy;
-    // new position
-    let sp = (this.x + dx - px)*nx + (this.y + dy - py)*ny;
-    this.x = px - sp * nx;
-    this.y = py - sp * ny;
+  bounce(info) {
+    // new position at contact point
+    this.x += info.minm * info.dx
+    this.y += info.minm * info.dy;
+
     // new direction
-    let sd = (this.directx * nx + this.directy * ny);
-    this.directx = this.directx - 2 * sd * nx;
-    this.directy = this.directy - 2 * sd * ny;
+    let sd = (this.directx * info.nx + this.directy * info.ny);
+    this.directx = this.directx - 2 * sd * info.nx;
+    this.directy = this.directy - 2 * sd * info.ny;
+
+    // new delta
+    let sp = (info.dx * info.nx + info.dy * info.ny);
+    info.dx = (1-info.minm)*(info.dx -2*sp*info.nx);
+    info.dy = (1-info.minm)*(info.dy - 2*sp*info.ny);
+
+    return info;
   }
 
   /*
@@ -390,8 +401,6 @@ class Wall {
     // normal
     this.nx = (y1 - y2)/this.norm;
     this.ny = (x2 - x1)/this.norm;
-    this.sx = Math.sign(this.nx);
-    this.sy = Math.sign(this.ny);
 
     // segment origin
     this.ax = this.x1 + this.nx * radius;
@@ -406,18 +415,15 @@ class Wall {
   */
   check_bounce(info) {
     let cx = info.ball.x, cy = info.ball.y, jx = info.dx, jy = info.dy;
-    //if ( Math.sign(this.nx)*Math.sign(jx) > 0 && Math.sign(this.ny)*Math.sign(jy) > 0 ) {
-    //  return info;
-    //}
+    if ( this.nx*jx + this.ny*jy > 0 ) return info; // moving away
     let ax = this.ax, ay = this.ay, ix = this.ix, iy = this.iy
       , d = (ix*jy-iy*jx)
       , m = (ix*(ay-cy)+iy*(cx-ax))/d
-      , k = (jy*(cx-ax)+jx*(ay-cy))/d
     ;
-    if ( m >= 0 && m <= 1 && k >= 0 && k <= 1 ) {
-      if ( m < info.minm) return {...info, minm:m, nx:this.nx, ny:this.ny, o:this.owner};
-    }
-    return info;
+    if ( m > 1 || m < 0 || m > info.minm) return info;
+    let k = (jy*(cx-ax)+jx*(ay-cy))/d;
+    if ( k > 1 || k < 0 ) return info;
+    return {...info, minm:m, nx:this.nx, ny:this.ny, o:this.owner};
   }
 }
 
@@ -443,12 +449,14 @@ class Sphere {
   check_bounce(info) {
     let cx = info.ball.x, cy = info.ball.y, jx = info.dx, jy = info.dy
       , cmox = cx - this.x, cmoy = cy - this.y
-      , a = jx*jx + jy*jy
+    ;
+    if ( cmox*jx + cmoy*jy > 0 ) return info; // moving away
+    let a = jx*jx + jy*jy
       , b = 2*(cmox*jx + cmoy*jy)
       , c = cmox*cmox + cmoy*cmoy - this.r2
       , delta = b*b - 4*a*c
     ;
-    if ( delta < 0 ) return info;
+    if ( delta < 0 ) return info; // no intersection
     let sqd = Math.sqrt(delta)
       , m1 = (-b-sqd)/2/a
       , m2 = (-b+sqd)/2/a
@@ -494,21 +502,14 @@ class Block {
   }
 
   /*
-  ** Create walls where balls will bounce
+  ** Create borders where balls will bounce
   */
-  walls(a) {
+  borders(a) {
     this.coords().forEach( (c,i,cs) => {
       let p = i ? cs[i-1] : cs[cs.length-1];
-      a.push(new Wall(this, c.x, c.y, p.x, p.y));
+      a.push(new Wall(this, c.x, c.y, p.x, p.y)); // wall
+      a.push(new Sphere(this, c.x, c.y, radius)); // corner
     });
-    return a;
-  }
-
-  /*
-  ** Create corners where balls will bounce
-  */
-  corners(a) {
-    this.coords().forEach( (c) => a.push(new Sphere(this, c.x, c.y, radius)));
     return a;
   }
 
@@ -740,19 +741,18 @@ function random_int(max) {
 */
 function init_obstacles() {
   // playground borders
-  walls = [
+  borders = [
     new Wall(null,0,0, playground.width,0),
     new Wall(null,playground.width,0, playground.width,playground.height),
     new Wall(bottom(),playground.width,playground.height, 0,playground.height),
     new Wall(null,0,playground.height, 0,0)
   ];
   // blocks
-  walls = blocks.reduce((w,b) => b.walls(w),walls);
-  corners = blocks.reduce((c,b) => b.corners(c),[]);
+  borders = blocks.reduce((a,b) => b.borders(a),borders);
 }
 
 /*
-** hit member of returned object is to be called when a ball hits bottom of playground
+** hit member of returned object has to be called when a ball hits bottom of playground
 */
 function bottom() {
   return {
@@ -772,8 +772,10 @@ function bottom() {
 ** Remove a block from list of blocks, as well as his walls, corners and DOM element
 */
 function remove_block(b) {
-  walls.filter(w => w.owner == b).forEach(w => {walls.splice(walls.indexOf(w),1); delete w});
-  corners.filter(c => c.owner == b).forEach(c => {corners.splice(corners.indexOf(c),1); delete c});
+  borders.filter(w => w.owner == b).forEach(w => {
+    borders.splice(borders.indexOf(w),1);
+    delete w
+  });
   blocks.splice(blocks.indexOf(b),1);
   b.elt.parentNode.removeChild(b.elt);
   delete b;
@@ -867,7 +869,7 @@ function fire(e) {
 
   // launch a new ball
   function launch_ball() {
-    balls.push(new Ball);
+    balls.push(new Ball(launched_balls+1));
     launched_balls += 1;
   }
 
@@ -961,8 +963,7 @@ function new_game() {
   nballs = 1;
   balls = [];
   radius = 0;
-  walls = [];
-  corners = [];
+  borders = [];
   level = 1;
   level_label.textContent = 'level '+level;
   update_blocks();
