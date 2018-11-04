@@ -227,8 +227,8 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , radius = 0        // ball radius
   , borders = []      // list of borders where balls will bounce
   , level = 1         // current player level
-  , speed             // animation speed;
-  , nloop             // debug
+  , speed             // animation speed
+  , nloop             // recursion loop safeguard
 ;
 
 /* ****************************************************************************
@@ -247,8 +247,8 @@ class Ball {
     this.r = 0.8*radius;
     this.x = launcher.x;
     this.y = launcher.y;
-    this.directx = Math.sin(launcher.angle);
-    this.directy = -Math.cos(launcher.angle);
+    this.dx = Math.sin(launcher.angle);
+    this.dy = -Math.cos(launcher.angle);
   }
 
   /*
@@ -256,12 +256,9 @@ class Ball {
   */
   move(dist) {
     nloop = 0;
-    let dx = dist * this.directx
-      , dy = dist * this.directy
-      , info = this.check_bounce({minm:2, dx, dy, nx:0, ny:0, ball:this, o:null});
-    ;
-    this.x += info.dx;
-    this.y += info.dy;
+    let info = this.check_bounce({minm:2, dist, nx:0, ny:0, ball:this, o:null});
+    this.x += this.dx * info.dist;
+    this.y += this.dy * info.dist;
   }
 
   /*
@@ -285,20 +282,16 @@ class Ball {
   */
   bounce(info) {
     // new position at contact point
-    this.x += info.minm * info.dx
-    this.y += info.minm * info.dy;
+    this.x += info.minm * info.dist * this.dx
+    this.y += info.minm * info.dist * this.dy;
 
     // new direction
-    let sd = (this.directx * info.nx + this.directy * info.ny);
-    this.directx = this.directx - 2 * sd * info.nx;
-    this.directy = this.directy - 2 * sd * info.ny;
+    let sd = (this.dx * info.nx + this.dy * info.ny);
+    this.dx = this.dx - 2 * sd * info.nx;
+    this.dy = this.dy - 2 * sd * info.ny;
 
-    // new delta
-    let sp = (info.dx * info.nx + info.dy * info.ny);
-    info.dx = (1-info.minm)*(info.dx -2*sp*info.nx);
-    info.dy = (1-info.minm)*(info.dy - 2*sp*info.ny);
-
-    return info;
+    // new dist
+    return {...info, dist: (1-info.minm)*info.dist};
   }
 
   /*
@@ -413,7 +406,11 @@ class Wall {
   ** and J such as D = C + mJ, let's compute k and m and check if d and m are > 0 and < 1
   */
   check_bounce(info) {
-    let cx = info.ball.x, cy = info.ball.y, jx = info.dx, jy = info.dy;
+    let cx = info.ball.x
+      , cy = info.ball.y
+      , jx = info.ball.dx*info.dist
+      , jy = info.ball.dy*info.dist
+    ;
     if ( this.nx*jx + this.ny*jy > 0 ) return info; // moving away
     let ax = this.ax, ay = this.ay, ix = this.ix, iy = this.iy
       , d = (ix*jy-iy*jx)
@@ -446,8 +443,12 @@ class Sphere {
   ** Model of ball is as above, model of sphere is P / OP = r
   */
   check_bounce(info) {
-    let cx = info.ball.x, cy = info.ball.y, jx = info.dx, jy = info.dy
-      , cmox = cx - this.x, cmoy = cy - this.y
+    let cx = info.ball.x
+      , cy = info.ball.y
+      , jx = info.ball.dx * info.dist
+      , jy = info.ball.dy * info.dist
+      , cmox = cx - this.x
+      , cmoy = cy - this.y
     ;
     if ( cmox*jx + cmoy*jy > 0 ) return info; // moving away
     let a = jx*jx + jy*jy
