@@ -685,7 +685,6 @@ function initialize() {
   launcher = new Launcher(playground);
   update_blocks();
   resize();
-  change_speed();
 }
 
 /*
@@ -794,6 +793,7 @@ function resize() {
   blocks.forEach(b => b.resize());
   balls.forEach(b => b.resize(scale));
   init_obstacles();
+  change_speed();
   redraw();
 }
 
