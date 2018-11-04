@@ -233,7 +233,7 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
 
 /* ****************************************************************************
 **
-** Ball Class
+** Moving ball
 **
 ** ***************************************************************************/
 class Ball {
@@ -244,7 +244,7 @@ class Ball {
   */
   constructor(id) {
     this.id = id;
-    this.r = 0.8*radius;
+    this.r = radius;
     this.x = launcher.x;
     this.y = launcher.y;
     this.dx = Math.sin(launcher.angle);
@@ -394,7 +394,7 @@ class Wall {
     this.nx = (y1 - y2)/this.norm;
     this.ny = (x2 - x1)/this.norm;
 
-    // segment origin offset by ball radius
+    // wall is offset from segment by ball radius
     this.ax = this.x1 + this.nx * radius;
     this.ay = this.y1 + this.ny * radius;
   }
