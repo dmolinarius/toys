@@ -437,6 +437,29 @@ class Wall {
   }
 }
 
+
+/* ****************************************************************************
+**
+** Bottom wall
+**
+** ***************************************************************************/
+class Bottom extends Wall {
+  constructor(x1,y1,x2,y2) {
+    super(null,x1,y1,x2,y2);
+    this.owner = this;
+  }
+  hit(ball) {
+    console.log('bottom hit by ball',this,ball);
+    if ( next_pos === undefined ) next_pos = ball.x;
+    balls.splice(balls.indexOf(ball),1);
+    if ( balls.length < 1 && launched_balls == nballs) {
+      stop();
+      next_level();
+    }
+  }
+}
+
+
 /* ****************************************************************************
 **
 ** Spheres are used to implement block corners and bonuses
@@ -580,10 +603,16 @@ class LauncherLoader extends Bonus {
     blocks.splice(blocks.indexOf(this),1);
     borders.splice(borders.indexOf(this),1);
     this.elt.parentNode.removeChild(this.elt);
-    delete this;
   }
 }
 
+/* ****************************************************************************
+**
+** Bonus to let balls bounce on bottom
+**
+** ***************************************************************************/
+class Bouncer extends Bonus {
+}
 
 /* ****************************************************************************
 **
@@ -868,28 +897,11 @@ function init_borders() {
   borders = [
     new Wall(null,0,0, playground.width,0),
     new Wall(null,playground.width,0, playground.width,playground.height),
-    new Wall(bottom(),playground.width,playground.height, 0,playground.height),
+    new Bottom(playground.width,playground.height, 0,playground.height),
     new Wall(null,0,playground.height, 0,0)
   ];
   // blocks
   borders = blocks.reduce((a,b) => b.borders(a),borders);
-}
-
-/*
-** hit member of returned object has to be called when a ball hits bottom of playground
-*/
-function bottom() {
-  return {
-    hit: function(ball) {
-      if ( next_pos === undefined ) next_pos = ball.x;
-      balls.splice(balls.indexOf(ball),1);
-      delete ball;
-      if ( balls.length < 1 && launched_balls == nballs) {
-        stop();
-        next_level();
-      }
-    }
-  }
 }
 
 /*
@@ -898,11 +910,9 @@ function bottom() {
 function remove_block(b) {
   borders.filter(w => w.owner == b).forEach(w => {
     borders.splice(borders.indexOf(w),1);
-    delete w
   });
   blocks.splice(blocks.indexOf(b),1);
   b.elt.parentNode.removeChild(b.elt);
-  delete b;
   if ( blocks.length < 1 ) game_over(won);
 }
 
