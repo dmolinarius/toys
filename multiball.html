@@ -102,6 +102,11 @@ html, body {
   left: 0.33em;
   bottom: 0.33em;
 }
+.bonus {
+  position: absolute;
+  box-sizing: border-box;
+  border-style: solid;
+}
 
 #won, #lost {
   display: none;
@@ -159,7 +164,7 @@ html, body {
   height: 1.33em;
   line-height: 1.33em;
   left: calc(50% - 1.5em);
-  top: calc(5vmin - 0.7em);
+  top: calc(5vmin - 0.8em);
   text-align:center;
   border-radius: 3px;
   box-shadow: 0 0 2px black, inset 0 0 2px #777;
@@ -189,6 +194,13 @@ output {
   display: inline;
   font-size: 3vmin;
 }
+#balls_label {
+  text-align: left;
+  padding: 0 0.5em;
+  height: 1.33em;
+  top: calc(5vmin - 0.7em + 2px);
+  position: absolute;
+}
 
 </style>
 
@@ -196,6 +208,7 @@ output {
 <div id="board">
   <div id="level_label">level 1</div>
   <div id='toolbox'>
+   <label id="balls_label">balls <output id="balls_value"></output></label>
    <div id='home_button' title="Call running balls home">Home</div>
    <div id='speed_box' title="Adjust animation speed">
     <label for="speed_input">speed <output id="speed_value"></output></label>
@@ -316,6 +329,7 @@ class Ball {
   }
 }
 
+
 /* ****************************************************************************
 **
 ** Ball Launcher
@@ -425,7 +439,7 @@ class Wall {
 
 /* ****************************************************************************
 **
-** Spheres are used to implement block corners
+** Spheres are used to implement block corners and bonuses
 **
 ** ***************************************************************************/
 class Sphere {
@@ -483,6 +497,96 @@ class Sphere {
 
 /* ****************************************************************************
 **
+** Bonuses are special cells delivering a bonus when hit
+**
+** ***************************************************************************/
+class Bonus extends Sphere {
+
+  /*
+  ** Create Bonus at given column and row
+  */
+  constructor(col,row) {
+    let d = 0.1*blocksize;
+    super(null,(col-0.5)*blocksize, (row-0.5)*blocksize, 4*d);
+    Object.assign(this,{o:this, col, row});
+
+    this.elt = document.createElement('div');
+    this.elt.className = 'bonus';
+    this.init && this.init();
+    this.resize();
+    window.board.appendChild(this.elt);
+  }
+
+  /*
+  ** Resize bonus
+  */
+  resize() {
+    this.r = 0.3 * blocksize,
+    this.dmin = this.r/2 + radius;
+    this.dmin2 = this.dmin * this.dmin;
+    this.x = (this.col - 0.5)*blocksize;
+    this.y = (this.row - 0.5)*blocksize;
+
+    this.elt.style.left = (this.col-1)*blocksize+'px';
+    this.elt.style.top = (this.row-1)*blocksize+'px';
+    this.elt.style.width = this.r+'px';
+    this.elt.style.height = this.r+'px';
+    this.elt.style.borderWidth = (0.2*this.r)+'px';
+    this.elt.style.marginLeft = 0.5*(blocksize-this.r)+'px';
+    this.elt.style.marginTop = this.elt.style.marginLeft;
+    this.elt.style.borderRadius = 0.5*this.r+'px';
+  }
+
+  /*
+  ** Register self
+  */
+  borders(a) {
+    a.push(this);
+    return a;
+  }
+
+  /*
+  ** Check if bonus hit by given ball
+  */
+  check_bounce(info) {
+    let check = super.check_bounce(info);
+    if ( check.minm < info.minm ) this.hit(info.ball);
+    return info;
+  }
+
+  /*
+  ** Bonus has been hit by given ball
+  */
+  hit(ball) {
+    console.log('bonus hit by ball',this,ball);
+  }
+}
+
+/* ****************************************************************************
+**
+** Bonus to load one more ball into launcher
+**
+** ***************************************************************************/
+class LauncherLoader extends Bonus {
+  init() {
+    this.elt.style.borderColor = 'rgba(255,0,0,0.9)';
+    this.elt.style.backgroundColor = 'rgba(255,0,0,0.5)';
+  }
+  next_row() {
+    this.row += 1;
+  }
+  hit() {
+    set_nballs(nballs+1);
+    blocks.splice(blocks.indexOf(this),1);
+    borders.splice(borders.indexOf(this),1);
+    this.elt.parentNode.removeChild(this.elt);
+    delete this;
+  }
+}
+
+
+/* ****************************************************************************
+**
 ** Blocks are the obstacles balls bounce on
 **
 ** ***************************************************************************/
@@ -499,6 +603,13 @@ class Block {
     this.repaint();
     this.resize();
     window.board.appendChild(this.elt);
+  }
+
+  /*
+  ** Translate block by one row
+  */
+  next_row() {
+    this.row += 1;
   }
 
   /*
@@ -693,6 +804,7 @@ function rgb(r,g,b) {
 */
 function initialize() {
   init_consts();
+  set_nballs(1);
   launcher = new Launcher(playground);
   update_blocks();
   resize();
@@ -711,7 +823,7 @@ function init_consts() {
 */
 function update_blocks() {
   // test_palette(); return;
-  blocks.forEach(b => b.row += 1);
+  blocks.forEach(b => b.next_row());
   let num = 2 + random_int(4)
     , available_cols = [1, 2, 3, 4, 5, 6, 7]
     , block_types = [ TopLeftTriangle, TopRightTriangle,
@@ -725,6 +837,8 @@ function update_blocks() {
     blocks.push(new type(col,2,Math.floor(6*level/num)));
     available_cols.splice(i-1,1);
   }
+  let i = random_int(available_cols.length);
+  blocks.push(new LauncherLoader(available_cols[i-1],2));
 }
 
 /*
@@ -747,9 +861,9 @@ function random_int(max) {
 }
 
 /*
-** Create walls and corners from playground borders, and list of blocks
+** Create walls and corners from playground borders and blocks
 */
-function init_obstacles() {
+function init_borders() {
   // playground borders
   borders = [
     new Wall(null,0,0, playground.width,0),
@@ -803,7 +917,7 @@ function resize() {
   launcher.resize(playground);
   blocks.forEach(b => b.resize());
   balls.forEach(b => b.resize(scale));
-  init_obstacles();
+  init_borders();
   change_speed();
   redraw();
 }
@@ -943,17 +1057,32 @@ function stop() {
 function next_level() {
   if ( blocks.filter(b => b.row > 8).length > 0 ) game_over(lost);
   else {
-    level += 1;
-    nballs += 1;
-    level_label.textContent = 'level '+level;
+    set_level(level+1);
     if ( next_pos !== undefined ) launcher.move(next_pos);
     next_pos = undefined;
     update_blocks();
     blocks.forEach(b => b.resize());
-    init_obstacles();
+    init_borders();
     redraw();
   }
 }
+
+/*
+** set number of balls to launch
+*/
+function set_nballs(n) {
+  nballs = n;
+  balls_value.textContent = nballs;
+}
+
+/*
+** set current level
+*/
+function set_level(n) {
+  level = n;
+  level_label.textContent = 'level '+level;
+}
+
 
 /*
 ** game over
@@ -971,12 +1100,11 @@ function new_game() {
   blocks.forEach(b => b.elt.parentNode.removeChild(b.elt));
   next_pos = undefined;
   blocks = [];
-  nballs = 1;
   balls = [];
   radius = 0;
   borders = [];
-  level = 1;
-  level_label.textContent = 'level '+level;
+  set_nballs(1);
+  set_level(1);
   update_blocks();
   resize();
   playground.addEventListener('mousedown',start_shooting);
