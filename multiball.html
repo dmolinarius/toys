@@ -262,6 +262,23 @@ class Ball {
     this.y = launcher.y;
     this.dx = Math.sin(launcher.angle);
     this.dy = -Math.cos(launcher.angle);
+    this.allow_bounces = 0;
+    this.color = '#fff';
+  }
+
+  /*
+  ** Manage bounces on bottom wall
+  */
+  bounce_more() {
+    this.allow_bounces += 1;
+    this.color = '#f0f';
+  }
+  can_bounce() {
+    return this.allow_bounces > 0;
+  }
+  bottom_bounce() {
+    this.allow_bounces -= 1;
+    this.color = this.can_bounce() ? '#f0f' : '#fff';
   }
 
   /*
@@ -312,7 +329,7 @@ class Ball {
   */
   draw(ctx) {
     ctx.save();
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = this.color;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.r, 0, 2*Math.PI);
     ctx.fill();
@@ -371,7 +388,7 @@ class Launcher {
   }
 
   /*
-  ** Draw Lancher on canvas
+  ** Draw Launcher on canvas
   */
   draw(ctx) {
     ctx.save();
@@ -449,12 +466,16 @@ class Bottom extends Wall {
     this.owner = this;
   }
   hit(ball) {
-    console.log('bottom hit by ball',this,ball);
     if ( next_pos === undefined ) next_pos = ball.x;
-    balls.splice(balls.indexOf(ball),1);
-    if ( balls.length < 1 && launched_balls == nballs) {
-      stop();
-      next_level();
+    if ( ball.can_bounce() ) {
+      ball.bottom_bounce();
+    }
+    else {
+      balls.splice(balls.indexOf(ball),1);
+      if ( balls.length < 1 && launched_balls == nballs) {
+        stop();
+        next_level();
+      }
     }
   }
 }
@@ -561,7 +582,14 @@ class Bonus extends Sphere {
   }
 
   /*
-  ** Register self
+  ** Move one row down
+  */
+  next_row() {
+    this.row += 1;
+  }
+
+  /*
+  ** Register self as border
   */
   borders(a) {
     a.push(this);
@@ -583,6 +611,15 @@ class Bonus extends Sphere {
   hit(ball) {
     console.log('bonus hit by ball',this,ball);
   }
+
+  /*
+  ** Delete bonus
+  */
+  delete() {
+    blocks.splice(blocks.indexOf(this),1);
+    borders.splice(borders.indexOf(this),1);
+    this.elt.parentNode.removeChild(this.elt);
+  }
 }
 
 /* ****************************************************************************
@@ -592,17 +629,12 @@ class Bonus extends Sphere {
 ** ***************************************************************************/
 class LauncherLoader extends Bonus {
   init() {
-    this.elt.style.borderColor = 'rgba(255,0,0,0.9)';
-    this.elt.style.backgroundColor = 'rgba(255,0,0,0.5)';
-  }
-  next_row() {
-    this.row += 1;
+    this.elt.style.borderColor = 'rgba(255,90,0,0.9)';
+    this.elt.style.backgroundColor = 'rgba(255,90,0,0.5)';
   }
   hit() {
     set_nballs(nballs+1);
-    blocks.splice(blocks.indexOf(this),1);
-    borders.splice(borders.indexOf(this),1);
-    this.elt.parentNode.removeChild(this.elt);
+    this.delete();
   }
 }
 
@@ -612,7 +644,20 @@ class LauncherLoader extends Bonus {
 **
 ** ***************************************************************************/
 class Bouncer extends Bonus {
+  init() {
+    this.elt.style.borderColor = 'rgba(255,0,255,0.9)';
+    this.elt.style.backgroundColor = 'rgba(255,0,255,0.5)';
+    this.hit_count = 0;
+  }
+  hit(ball) {
+    if ( !ball.can_bounce() ) ball.bounce_more();
+    this.hit_count++;
+  }
+  next_row() {
+    if ( this.hit_count > 0 ) this.delete();
+  }
 }
+
 
 /* ****************************************************************************
 **
@@ -868,6 +913,12 @@ function update_blocks() {
   }
   let i = random_int(available_cols.length);
   blocks.push(new LauncherLoader(available_cols[i-1],2));
+  available_cols.splice(i-1,1);
+  if ( available_cols.length > 1 && random_int(2) > 1 ) {
+    let i = random_int(available_cols.length);
+    blocks.push(new Bouncer(available_cols[i-1],2));
+    available_cols.splice(i-1,1);
+  }
 }
 
 /*
