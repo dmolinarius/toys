@@ -9,6 +9,10 @@ A directory holding small javascript webapps within single html files.
   Select a local image to use as a background (warning big images may considerably slow down your browser).
   Play by clicking on an empty cell neighbour to move it.
 
+* [multiball.html](http://dmolinarius.github.io/toys/multiball.html) - Yet another application to throw balls on obstacles.
+
+  Click an drag to shoot, then release mouse button to fire. Warning : addictive.
+
 * [radar.html](http://dmolinarius.github.io/toys/radar.html) - An application to draw radar graphs based on angularjs and SVG.
 
   Click on labels to modify the text, and drag labels around.
