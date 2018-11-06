@@ -955,7 +955,10 @@ function init_consts() {
 */
 function update_blocks() {
   // test_palette(); return;
-  blocks.forEach(b => b.next_row());
+
+  // filter first to copy blocks since next_row may splice blocks
+  blocks.filter(b => true).forEach(b => b.next_row());
+
   let num = 2 + random_int(4)
     , available_cols = [1, 2, 3, 4, 5, 6, 7]
     , block_types = [ TopLeftTriangle, TopRightTriangle,
