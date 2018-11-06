@@ -263,7 +263,9 @@ class Ball {
     this.dx = Math.sin(launcher.angle);
     this.dy = -Math.cos(launcher.angle);
     this.allow_bounces = 0;
-    this.color = '#fff';
+    this.double = false;
+    this.default_color = '#fff';
+    this.color = this.default_color;
   }
 
   /*
@@ -271,14 +273,26 @@ class Ball {
   */
   bounce_more() {
     this.allow_bounces += 1;
-    this.color = '#f0f';
+    this.color = this.is_double() ? '#0ff' : '#f0f';
   }
   can_bounce() {
     return this.allow_bounces > 0;
   }
   bottom_bounce() {
     this.allow_bounces -= 1;
-    this.color = this.can_bounce() ? '#f0f' : '#fff';
+    this.color = this.can_bounce() ? '#f0f' : this.default_color;
+  }
+
+  /*
+  ** Manage doubled balls
+  */
+  is_double() {
+    return this.double;
+  }
+  set_double() {
+    this.double = true;
+    this.default_color = '#0f0';
+    this.color = this.default_color;
   }
 
   /*
@@ -298,7 +312,7 @@ class Ball {
     nloop += 1;
     info = borders.reduce((info,border) => border.check_bounce(info), info);
     if ( info.minm <=1 ) {
-      if ( info.o ) info.o.hit(this);
+      if ( info.o ) info = info.o.hit(info);
       info = this.bounce(info);
       if ( nloop < 5 ) { // safeguard from too much recursion
         info = this.check_bounce({...info, minm:2, nx:0, ny:0, o:null});
@@ -465,7 +479,8 @@ class Bottom extends Wall {
     super(null,x1,y1,x2,y2);
     this.owner = this;
   }
-  hit(ball) {
+  hit(info) {
+    let ball = info.ball;
     if ( next_pos === undefined ) next_pos = ball.x;
     if ( ball.can_bounce() ) {
       ball.bottom_bounce();
@@ -477,6 +492,7 @@ class Bottom extends Wall {
         next_level();
       }
     }
+    return info;
   }
 }
 
@@ -601,15 +617,16 @@ class Bonus extends Sphere {
   */
   check_bounce(info) {
     let check = super.check_bounce(info);
-    if ( check.minm < info.minm ) this.hit(info.ball);
+    if ( check.minm < info.minm ) info = this.hit(info);
     return info;
   }
 
   /*
   ** Bonus has been hit by given ball
   */
-  hit(ball) {
-    console.log('bonus hit by ball',this,ball);
+  hit(info) {
+    console.log('bonus hit by ball',this,info);
+    return info;
   }
 
   /*
@@ -632,9 +649,10 @@ class LauncherLoader extends Bonus {
     this.elt.style.borderColor = 'rgba(255,90,0,0.9)';
     this.elt.style.backgroundColor = 'rgba(255,90,0,0.5)';
   }
-  hit() {
+  hit(info) {
     set_nballs(nballs+1);
     this.delete();
+    return info;
   }
 }
 
@@ -649,12 +667,51 @@ class Bouncer extends Bonus {
     this.elt.style.backgroundColor = 'rgba(255,0,255,0.5)';
     this.hit_count = 0;
   }
-  hit(ball) {
-    if ( !ball.can_bounce() ) ball.bounce_more();
+  hit(info) {
+    if ( !info.ball.can_bounce() ) info.ball.bounce_more();
     this.hit_count++;
+    return info;
   }
   next_row() {
     if ( this.hit_count > 0 ) this.delete();
+    else this.row += 1;
+  }
+}
+
+/* ****************************************************************************
+**
+** Bonus to double balls
+**
+** ***************************************************************************/
+class Doubler extends Bonus {
+  init() {
+    this.elt.style.borderColor = 'rgba(0,255,0,0.9)';
+    this.elt.style.backgroundColor = 'rgba(0,255,0,0.5)';
+    this.hit_count = 0;
+  }
+  hit(info) {
+    let angle = 20/180*Math.PI
+      , ball = info.ball
+      , dx = ball.dx
+      , dy = ball.dy
+    ;
+    if ( ! ball.is_double() ) {
+      ball.dx = dx * Math.cos(angle) - dy * Math.sin(angle);
+      ball.dy = dx * Math.sin(angle) + dy * Math.cos(angle);
+      this.hit_count++;
+      let ball2 = new Ball(nballs+ball.id);
+      ball2.x = ball.x;
+      ball2.y = ball.y;
+      ball2.dx = dx * Math.cos(-angle) - dy * Math.sin(-angle);
+      ball2.dy = dx * Math.sin(-angle) + dy * Math.cos(-angle);
+      ball2.set_double();
+      balls.push(ball2);
+    }
+    return info;
+  }
+  next_row() {
+    if ( this.hit_count > 0 ) this.delete();
+    else this.row += 1;
   }
 }
 
@@ -731,11 +788,12 @@ class Block {
   ** Block has been hit, decrease level and repaint
   ** or eventually delete block of level is < 1
   */
-  hit(ball) {
+  hit(info) {
     this.level = this.level - 1;
     this.show_level();
     if ( this.level < 1 ) remove_block(this);
     else this.repaint();
+    return info;
   }
 }
 
@@ -902,11 +960,12 @@ function update_blocks() {
     , available_cols = [1, 2, 3, 4, 5, 6, 7]
     , block_types = [ TopLeftTriangle, TopRightTriangle,
         BottomRightTriangle, BottomLeftTriangle, Square ]
+    , bonus_types = [Bouncer, Doubler]
   ;
   for ( let n=0; n < num; n++ ) {
     let i = random_int(available_cols.length)
       , col = available_cols[i-1]
-      , type = block_types[Math.min(random_int(10)-1,4)]
+      , type = block_types[Math.min(random_int(10)-1,block_types.length-1)]
     ;
     blocks.push(new type(col,2,Math.floor(6*level/num)));
     available_cols.splice(i-1,1);
@@ -915,8 +974,9 @@ function update_blocks() {
   blocks.push(new LauncherLoader(available_cols[i-1],2));
   available_cols.splice(i-1,1);
   if ( available_cols.length > 1 && random_int(2) > 1 ) {
-    let i = random_int(available_cols.length);
-    blocks.push(new Bouncer(available_cols[i-1],2));
+    let i = random_int(available_cols.length)
+      , bonus = bonus_types[random_int(bonus_types.length)-1]
+    blocks.push(new bonus(available_cols[i-1],2));
     available_cols.splice(i-1,1);
   }
 }
@@ -964,7 +1024,7 @@ function remove_block(b) {
   });
   blocks.splice(blocks.indexOf(b),1);
   b.elt.parentNode.removeChild(b.elt);
-  if ( blocks.length < 1 ) game_over(won);
+  if ( blocks.filter(b => !(b instanceof Bonus)).length < 1 ) game_over(won);
 }
 
 /*
@@ -1116,7 +1176,12 @@ function stop() {
 ** prepare next turn
 */
 function next_level() {
-  if ( blocks.filter(b => b.row > 8).length > 0 ) game_over(lost);
+  let bks =  blocks.filter(b => b.row > 8);
+  if ( bks.length > 0 ) {
+    let bns = bks.filter(b => b instanceof Bonus);
+    if (bns.length < bks.length) game_over(lost);
+    else bns.forEach(b => b.delete());
+  }
   else {
     set_level(level+1);
     if ( next_pos !== undefined ) launcher.move(next_pos);
