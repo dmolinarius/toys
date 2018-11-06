@@ -195,10 +195,17 @@ output {
   font-size: 3vmin;
 }
 #balls_label {
+  font-size: 3vmin;
   text-align: left;
   padding: 0 0.5em;
-  height: 1.33em;
-  top: calc(5vmin - 0.7em + 2px);
+  top: 0.5em;
+  position: absolute;
+}
+#credits_label {
+  font-size: 3vmin;
+  text-align: left;
+  padding: 0 0.5em;
+  top: 1.5em;
   position: absolute;
 }
 
@@ -209,6 +216,7 @@ output {
   <div id="level_label">level 1</div>
   <div id='toolbox'>
    <label id="balls_label">balls <output id="balls_value"></output></label>
+   <label id="credits_label">credits <output id="credits_value"></output></label>
    <div id='home_button' title="Call running balls home">Home</div>
    <div id='speed_box' title="Adjust animation speed">
     <label for="speed_input">speed <output id="speed_value"></output></label>
@@ -239,9 +247,10 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , balls = []        // list of ball objects
   , radius = 0        // ball radius
   , borders = []      // list of borders where balls will bounce
-  , level = 1         // current player level
+  , level = 0         // current player level
   , speed             // animation speed
   , nloop             // recursion loop safeguard
+  , credits = 0       // player credits
 ;
 
 /* ****************************************************************************
@@ -786,14 +795,26 @@ class Block {
 
   /*
   ** Block has been hit, decrease level and repaint
-  ** or eventually delete block of level is < 1
+  ** or eventually delete block if level is < 1
   */
   hit(info) {
     this.level = this.level - 1;
     this.show_level();
-    if ( this.level < 1 ) remove_block(this);
+    if ( this.level < 1 ) this.delete();
     else this.repaint();
     return info;
+  }
+
+  /*
+  ** Remove block from list of blocks, walls, corners
+  ** & delete DOM element
+  */
+  delete() {
+    borders.filter(w => w.owner == this).forEach(w => {
+      borders.splice(borders.indexOf(w),1);
+    });
+    blocks.splice(blocks.indexOf(this),1);
+    this.elt.parentNode.removeChild(this.elt);
   }
 }
 
@@ -937,6 +958,8 @@ function rgb(r,g,b) {
 function initialize() {
   init_consts();
   set_nballs(1);
+  set_level(1);
+  set_credits(0);
   launcher = new Launcher(playground);
   update_blocks();
   resize();
@@ -1021,18 +1044,6 @@ function init_borders() {
   ];
   // blocks
   borders = blocks.reduce((a,b) => b.borders(a),borders);
-}
-
-/*
-** Remove a block from list of blocks, as well as his walls, corners and DOM element
-*/
-function remove_block(b) {
-  borders.filter(w => w.owner == b).forEach(w => {
-    borders.splice(borders.indexOf(w),1);
-  });
-  blocks.splice(blocks.indexOf(b),1);
-  b.elt.parentNode.removeChild(b.elt);
-  if ( blocks.filter(b => !(b instanceof Bonus)).length < 1 ) game_over(won);
 }
 
 /*
@@ -1155,6 +1166,8 @@ function fire(e) {
     balls.forEach(b => b.move(dist));
     redraw();
 
+    if ( blocks.filter(b => !(b instanceof Bonus)).length < 1 ) game_over(won);
+
     // if still playing register next animation step
     if ( state == 'playing' ) requestAnimationFrame(nextStep);
     previous = timestamp;
@@ -1225,6 +1238,14 @@ function set_level(n) {
   level_label.textContent = 'level '+level;
 }
 
+/*
+** set player credits
+*/
+function set_credits(n) {
+  credits = n;
+  credits_value.textContent = credits;
+}
+
 
 /*
 ** game over
@@ -1239,18 +1260,25 @@ function game_over(elt) {
 ** start new game
 */
 function new_game() {
-  blocks.forEach(b => b.elt.parentNode.removeChild(b.elt));
-  next_pos = undefined;
-  blocks = [];
   balls = [];
-  radius = 0;
-  borders = [];
-  set_nballs(1);
-  set_level(1);
-  update_blocks();
-  resize();
   playground.addEventListener('mousedown',start_shooting);
   lost.style.display='none';
+
+  if ( credits > 0 ) {
+    set_credits(credits-1);
+    blocks.filter(b => b.row > 4).forEach(b => b.delete());
+  }
+  else {
+    blocks.forEach(b => b.elt.parentNode.removeChild(b.elt));
+    next_pos = undefined;
+    blocks = [];
+    borders = [];
+    set_nballs(1);
+    set_level(1);
+    set_credits(0);
+  }
+  update_blocks();
+  resize();
 }
 
 /*
@@ -1260,6 +1288,7 @@ function start_next_level() {
   balls = [];
   playground.addEventListener('mousedown',start_shooting);
   won.style.display='none';
+  set_credits(credits+1);
   next_level();
 }
 
