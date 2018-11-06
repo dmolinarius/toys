@@ -129,11 +129,11 @@ html, body {
   background: linear-gradient(#a00,#f42,#a00);
 }
 #won {
-  width:13em;
+  width:15em;
   padding-top: 0.7em;
   box-sizing: border-box;
   line-height: 1.33em;
-  left: calc(50vw - 6.5em);
+  left: calc(50vw - 7.5em);
   background-color: #192;
   color: #cec;
   box-shadow: inset 0 0 3px #300, 5px 5px 5px rgba(0,30,10,0.6);
@@ -954,31 +954,36 @@ function init_consts() {
 ** Scroll existing blocks down, and create a new row of blocks
 */
 function update_blocks() {
+  var block_types = [TopLeftTriangle, TopRightTriangle, BottomRightTriangle, BottomLeftTriangle, Square]
+    , bonus_types = [Bouncer, Doubler]
+    , available_cols = [1, 2, 3, 4, 5, 6, 7]
+  ;
   // test_palette(); return;
 
-  // filter first to copy blocks since next_row may splice blocks
-  blocks.filter(b => true).forEach(b => b.next_row());
+  // move existing cells one row down
+  // warning : next_row() may splice blocks...
+  blocks.slice().forEach(b => b.next_row());
 
-  let num = 2 + random_int(4)
-    , available_cols = [1, 2, 3, 4, 5, 6, 7]
-    , block_types = [ TopLeftTriangle, TopRightTriangle,
-        BottomRightTriangle, BottomLeftTriangle, Square ]
-    , bonus_types = [Bouncer, Doubler]
-  ;
+  // generate from 2 to 5 random blocks
+  let num = 2 + random_int(3)
   for ( let n=0; n < num; n++ ) {
     let i = random_int(available_cols.length)
-      , col = available_cols[i-1]
-      , type = block_types[Math.min(random_int(10)-1,block_types.length-1)]
+      , block = block_types[Math.min(random_int(10)-1,block_types.length-1)]
     ;
-    blocks.push(new type(col,2,Math.floor(6*level/num)));
+    blocks.push(new block(available_cols[i-1],2,Math.floor(6*level/num)));
     available_cols.splice(i-1,1);
   }
+
+  // generate LauncherLoader at random available position
   let i = random_int(available_cols.length);
   blocks.push(new LauncherLoader(available_cols[i-1],2));
   available_cols.splice(i-1,1);
-  if ( available_cols.length > 1 && random_int(2) > 1 ) {
+
+  // eventually generate a bonus
+  if ( available_cols.length > 1 && random_int(3) > 1 ) {
     let i = random_int(available_cols.length)
       , bonus = bonus_types[random_int(bonus_types.length)-1]
+    ;
     blocks.push(new bonus(available_cols[i-1],2));
     available_cols.splice(i-1,1);
   }
