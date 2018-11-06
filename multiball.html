@@ -224,7 +224,7 @@ output {
 <div id="lost">Game Over !</div>
 
 <!-- Congrats message -->
-<div id="won">Congratulations<br>you won !</div>
+<div id="won">Congratulations<br>you completed level !</div>
 
 <script>
 var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-width'),10)
@@ -489,7 +489,7 @@ class Bottom extends Wall {
       balls.splice(balls.indexOf(ball),1);
       if ( balls.length < 1 && launched_balls == nballs) {
         stop();
-        next_level();
+        next_turn();
       }
     }
     return info;
@@ -1161,7 +1161,7 @@ function home(e) {
   home_button.style.cursor = 'default';
   stop();
   balls = [];
-  next_level();
+  next_turn();
 }
 
 /*
@@ -1175,7 +1175,7 @@ function stop() {
 /*
 ** prepare next turn
 */
-function next_level() {
+function next_turn() {
   let bks =  blocks.filter(b => b.row > 8);
   if ( bks.length > 0 ) {
     let bns = bks.filter(b => b instanceof Bonus);
@@ -1185,15 +1185,20 @@ function next_level() {
       else b.delete()
     });
   }
-  else {
-    set_level(level+1);
-    if ( next_pos !== undefined ) launcher.move(next_pos);
-    next_pos = undefined;
-    update_blocks();
-    blocks.forEach(b => b.resize());
-    init_borders();
-    redraw();
-  }
+  else next_level();
+}
+
+/*
+** start next level
+*/
+function next_level() {
+  set_level(level+1);
+  if ( next_pos !== undefined ) launcher.move(next_pos);
+  next_pos = undefined;
+  update_blocks();
+  blocks.forEach(b => b.resize());
+  init_borders();
+  redraw();
 }
 
 /*
@@ -1238,7 +1243,16 @@ function new_game() {
   resize();
   playground.addEventListener('mousedown',start_shooting);
   lost.style.display='none';
+}
+
+/*
+** start next level
+*/
+function start_next_level() {
+  balls = [];
+  playground.addEventListener('mousedown',start_shooting);
   won.style.display='none';
+  next_level();
 }
 
 
@@ -1258,6 +1272,6 @@ window.onresize = resize;
 playground.addEventListener('mousedown',start_shooting);
 speed_input.addEventListener('input',change_speed);
 lost.addEventListener('click',new_game);
-won.addEventListener('click',new_game);
+won.addEventListener('click',start_next_level);
 
 </script>
