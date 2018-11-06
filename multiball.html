@@ -403,7 +403,7 @@ class Launcher {
   }
 
   /*
-  ** Resize Launcher (p is playground)
+  ** Resize Launcher
   */
   resize() {
     this.x = this.position * playground.width;
@@ -457,7 +457,7 @@ class Wall {
   ** Check if moving ball will bounce on segment
   ** https://openclassrooms.com/forum/sujet/calcul-du-point-d-intersection-de-deux-segments-21661
   ** to compute intersection of segments [AB] and [CD] where I is vector such as B = A + kI
-  ** and J such as D = C + mJ, let's compute k and m and check if d and m are > 0 and < 1
+  ** and J such as D = C + mJ, let's compute k and m and check if they are within interval [0,1]
   */
   check_bounce(info) {
     let cx = info.ball.x
