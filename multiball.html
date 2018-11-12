@@ -253,6 +253,7 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , speed             // animation speed
   , nloop             // recursion loop safeguard
   , credits = 0       // player credits
+  , step = 0          // current animation step id
 ;
 
 /* ****************************************************************************
@@ -593,8 +594,6 @@ class Bonus extends Sphere {
   */
   resize() {
     this.r = 0.3 * blocksize,
-    this.dmin = this.r/2 + radius;
-    this.dmin2 = this.dmin * this.dmin;
     this.x = (this.col - 0.5)*blocksize;
     this.y = (this.row - 0.5)*blocksize;
 
@@ -628,7 +627,7 @@ class Bonus extends Sphere {
   */
   check_bounce(info) {
     let check = super.check_bounce(info);
-    if ( check.minm < info.minm ) info = this.hit(info);
+    if ( check.minm < info.minm ) info = this.hit(info,check);
     return info;
   }
 
@@ -699,23 +698,34 @@ class Doubler extends Bonus {
     this.elt.style.borderColor = 'rgba(0,255,0,0.9)';
     this.elt.style.backgroundColor = 'rgba(0,255,0,0.5)';
     this.hit_count = 0;
+    this.doubled = {};
   }
-  hit(info) {
-    let angle = 20/180*Math.PI
+  hit(info,check) {
+    let angle = 20 // deg
+      , alpha = angle/180*Math.PI // radians
+      , theta = (Math.PI-alpha)/2 // bouncing normal
       , ball = info.ball
       , dx = ball.dx
       , dy = ball.dy
     ;
-    if ( ! ball.is_double() ) {
-      ball.dx = dx * Math.cos(angle) - dy * Math.sin(angle);
-      ball.dy = dx * Math.sin(angle) + dy * Math.cos(angle);
+    if ( !ball.is_double() && this.doubled[ball.id] != step) {
+      // remember we already doubled this ball during the current animation step
+      this.doubled[ball.id] = step;
+
+      // prepare to move to the contact point and to bounce
+      info.minm = check.minm;
+      info.nx = dx * Math.cos(-theta) - dy * Math.sin(-theta);
+      info.ny = dx * Math.sin(-theta) + dy * Math.cos(-theta);
       this.hit_count++;
+
+      // create a new ball at bouncing point
       let ball2 = new Ball(nballs+ball.id);
-      ball2.x = ball.x;
-      ball2.y = ball.y;
-      ball2.dx = dx * Math.cos(-angle) - dy * Math.sin(-angle);
-      ball2.dy = dx * Math.sin(-angle) + dy * Math.cos(-angle);
+      ball2.x = ball.x + info.minm * info.dist * dx;
+      ball2.y = ball.y + info.minm * info.dist * dy;
+      ball2.dx = dx * Math.cos(-alpha) - dy * Math.sin(-alpha);
+      ball2.dy = dx * Math.sin(-alpha) + dy * Math.cos(-alpha);
       ball2.set_double();
+      ball2.move(info.dist*(1-info.minm)); // may bounce
       balls.push(ball2);
     }
     return info;
@@ -1179,10 +1189,10 @@ function fire(e) {
   playground.removeEventListener('mousemove',shoot);
   playground.removeEventListener('mouseup',fire);
 
-  let steps = 0             // current number of animation steps
-    , start = null          // animation start timestamp
+  let start = null          // animation start timestamp
     , previous = null       // previous animation step timestamp
   ;
+  step = 0;
   state = 'playing';
   balls = [];
   launched_balls = 0;
@@ -1206,7 +1216,7 @@ function fire(e) {
       start = timestamp;
       previous = start;
     }
-    steps += 1;
+    step += 1;
 
     // while some balls still to launch ...
     if ( state=='playing' && launched_balls < nballs ) {
