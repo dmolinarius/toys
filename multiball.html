@@ -1316,6 +1316,8 @@ function game_over(elt) {
   state = 'game over';
   elt.style.display = 'block';
   playground.removeEventListener('mousedown',start_shooting);
+  home_button.removeEventListener('click',home);
+  home_button.style.cursor = 'default';
 }
 
 /*
