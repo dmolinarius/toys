@@ -292,6 +292,7 @@ class Ball {
   }
   bottom_bounce() {
     this.allow_bounces -= 1;
+    this.unset_double();
     this.color = this.can_bounce() ? '#f0f' : this.default_color;
   }
 
@@ -304,6 +305,11 @@ class Ball {
   set_double() {
     this.double = true;
     this.default_color = '#0f0';
+    this.color = this.default_color;
+  }
+  unset_double() {
+    this.double = false;
+    this.default_color = '#fff';
     this.color = this.default_color;
   }
 
