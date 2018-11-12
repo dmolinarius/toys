@@ -67,6 +67,7 @@ html, body {
   top: 0;
   text-align: left;
   padding-left: 0.33em;
+  padding-top: 0.33em;
 }
 .block.topright .triangle {
   transform: translate(-50%,-50%) rotateZ(45deg) translate(50%,-50%);
@@ -76,6 +77,7 @@ html, body {
   right: 0;
   text-align: right;
   padding-right: 0.33em;
+  padding-top: 0.33em;
 }
 .block.bottomright .triangle {
   transform: translate(-50%,-50%) rotateZ(45deg) translate(100%,0);
@@ -773,24 +775,23 @@ class Block {
     this.elt.style.width = blocksize+'px';
     this.elt.style.height = blocksize+'px';
     this.elt.style.lineHeight = blocksize+'px';
-    this.elt.style.fontSize = (blocksize/3)+'px';
+    this.elt.style.fontSize = (blocksize/4)+'px';
   }
 
   /*
   ** Repaint block with color depending on level
   */
   repaint() {
-    this.elt.style.backgroundColor = this.get_color();
+    let color = this.get_color()
+    this.elt.style.backgroundColor = color;
+    this.elt.style.color = invert_color(color);
   }
 
   /*
   ** return color from palette depending on level
   */
   get_color() {
-    let p = color_palette.reduceRight((p,cp,j) => this.level < cp.i ? {...cp, j} : p, null)
-      , l = p ? this.level - color_palette[p.j-1].i : undefined
-    ;
-    return p ? p.color(p.f(l)) : 'white';
+    return get_color(this.level);
   }
 
   /*
@@ -849,7 +850,9 @@ class Triangle extends Block {
     this.elt.appendChild(this.overlay);
   }
   repaint() {
-    this.triangle.style.backgroundColor = this.get_color();
+    let color = this.get_color();
+    this.triangle.style.backgroundColor = color;
+    this.overlay.style.color = invert_color(color);
   }
 }
 
@@ -933,23 +936,82 @@ class BottomLeftTriangle extends Triangle {
 /*
 ** block color palette
 */
+// https://gka.github.io/palettes/#colors=#bfbfbf,#b08030,#9f2000,#3f2040,#000060,#000030|steps=255|bez=0|coL=1
 var color_palette = [
-  { i: 1 },
-  { i: 9,  f: l =>  8*l, color: c => rgb(192+c,192-c,192-c) },
-  { i: 17, f: l => 16*l, color: c => rgb(255,128,128+c) },
-  { i: 25, f: l => 16*l, color: c => rgb(255-c,128,255) },
-  { i: 33, f: l =>  8*l, color: c => rgb(128-2*c,128+c,255-3*c) },
-  { i: 49, f: l =>  4*l, color: c => rgb(4*c,192+c,64-c) },
-  { i: 57, f: l => 16*l, color: c => rgb(255,255-c,0) },
-  { i: 65, f: l => 16*l, color: c => rgb(255,128-c,0) },
-  { i: 80, f: l => 16*l, color: c => rgb(255-c,0,c) },
+'#bfbfbf','#bfbebd','#bfbdbc','#bfbdba','#bfbbb7','#bfbab5','#bfb9b3','#bfb9b1',
+'#bfb8ae','#bfb7ac','#bfb6aa','#bfb5a8','#bfb4a6','#bfb3a3','#bfb1a1','#bfb09f',
+'#bfaf9d','#bfaf9b','#bfae99','#bfad97','#bfac96','#bfab94','#bfaa92','#bfa990',
+'#bea98d','#bea88b','#bea789','#bea687','#bea485','#bea482','#bda380','#bda27e',
+'#bda17c','#bda07a','#bd9f78','#bc9f77','#bc9e75','#bc9d73','#bc9c71','#bb9a6e',
+'#bb9a6c','#bb986a','#ba9868','#ba9665','#ba9663','#ba9562','#b99461','#b9945f',
+'#b9925c','#b8915a','#b89158','#b79056','#b78f53','#b78d51','#b68d50','#b68c4e',
+'#b68b4b','#b58a4a','#b58a48','#b48845','#b48843','#b38740','#b3853e','#b3853c',
+'#b2843b','#b28339','#b18337','#b18234','#b08131','#b08030','#b07e2f','#b07e2e',
+'#b07d2e','#b07b2d','#af7a2d','#af7a2c','#af772b','#af772a','#af752a','#af7429',
+'#af7328','#ae7228','#ae7127','#ae7027','#ae6f26','#ae6e25','#ae6d24','#ad6c24',
+'#ad6a23','#ad6922','#ad6922','#ad6721','#ad6621','#ac6520','#ac641f','#ac621e',
+'#ac611e','#ac601d','#ab601d','#ab5e1c','#ab5d1b','#ab5b1a','#aa5a1a','#aa5a19',
+'#aa5919','#aa5718','#a95517','#a95516','#a95416','#a95215','#a95114','#a85014',
+'#a84e13','#a84e13','#a84b11','#a74b11','#a74910','#a7480f','#a7470f','#a6460e',
+'#a6440e','#a6420d','#a5420c','#a5400c','#a53e0a','#a53e0a','#a43c09','#a43a08',
+'#a43a08','#a43807','#a33607','#a33506','#a33305','#a23305','#a23004','#a22e04',
+'#a12d03','#a12b03','#a12a02','#a02902','#a02701','#a02401','#9f2301','#9f2000',
+'#9e2002','#9c2003','#9a2005','#992108','#972109','#95210b','#94210c','#92210e',
+'#92210f','#8f2111','#8e2112','#8d2114','#8b2115','#8a2116','#872218','#872219',
+'#84221a','#83221b','#81221c','#7f221e','#7f221e','#7d2220','#7c2220','#792222',
+'#792222','#772224','#752225','#742225','#722227','#702228','#6e2228','#6c2229',
+'#6c222a','#69222b','#68222c','#66222d','#64222e','#63222f','#612130','#612130',
+'#5f2131','#5c2132','#5b2133','#592134','#572135','#552136','#532137','#522138',
+'#4f2139','#4d213a','#4b213b','#4a213b','#49203b','#47203d','#45203d','#43203e',
+'#41203f','#3f2040','#3e1f42','#3d1e42','#3d1d43','#3c1c44','#3a1b45','#391a46',
+'#391947','#381848','#371749','#36164a','#35154a','#34144c','#33134c','#31134d',
+'#30114e','#2f104f','#2e0f50','#2c0e51','#2b0d52','#2a0c53','#270b54','#250a55',
+'#240956','#220857','#1f0758','#1d0659','#1b055a','#1a045a','#17045b','#13035c',
+'#0d025e','#0b015e','#04005f','#00005f','#00015d','#00025a','#000258','#000355',
+'#000352','#00034f','#00034e','#00034c','#000349','#000346','#000343','#000341',
+'#01033e','#01023c','#010239','#020137','#010135','#010033','#000030','#00002d',
+'#00002a','#000027','#000024','#000021','#00001e','#00001b','#000018','#000015',
+'#000012','#000009','#000006','#000003'
 ];
 
 /*
-** Helper function, return CSS rgb string
+** Helper functions
 */
-function rgb(r,g,b) {
-  return 'rgb('+r+','+g+','+b+')';
+function rgb(h) {
+  return h.substring(1).match(/.{2}/g).reduce((c,h) => [...c,parseInt(h,16)],[]);
+}
+function css_rgb(h) {
+  return 'rgb('+rgb(h).join(',')+')';
+}
+function get_color(n) {
+  return n > color_palette.length-1 ? '#000000' : color_palette[n];
+}
+function invert_color(hhh) {
+  let c = hsl(rgb(hhh))
+    , h = c[0]+180
+    , css = css_hsl([h > 360 ? h-360 : h, (1-c[1]), (1-c[2])])
+  ;
+  return css;
+}
+function hsl(c) {
+  let r = c[0]/255
+    , g = c[1]/255
+    , b = c[2]/255
+    , cmax = Math.max(r,g,b)
+    , cmin = Math.min(r,g,b)
+    , delta = cmax - cmin
+    , l = (cmax+cmin)/2
+    , s = delta ? delta / (1-Math.abs(2*l-1)) : 0
+    , h
+  ;
+  if ( delta == 0 ) h = 0;
+  else if ( cmax == r ) h = 60*(((g-b)/delta)%6);
+  else if ( cmax == g ) h = 60*(((b-r)/delta)+2);
+  else if ( cmax == b ) h = 60*(((b-r)/delta)+4);
+  return [h, s, l];
+}
+function css_hsl(c) {
+  return 'hsl('+c[0]+'deg,'+c[1]*100+'%,'+c[2]*100+'%)';
 }
 
 /*
@@ -981,7 +1043,7 @@ function update_blocks() {
     , bonus_types = [Bouncer, Doubler]
     , available_cols = [1, 2, 3, 4, 5, 6, 7]
   ;
-  // test_palette(); return;
+  //test_palette(); return;
 
   // move existing cells one row down
   // warning : next_row() may splice blocks...
@@ -1266,6 +1328,7 @@ function new_game() {
 
   if ( credits > 0 ) {
     set_credits(credits-1);
+    // not yet hit LauncherLoader bonuses are intentionnaly lost here
     blocks.filter(b => b.row > 4).forEach(b => b.delete());
   }
   else {
