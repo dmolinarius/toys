@@ -12,9 +12,9 @@ A directory holding small javascript webapps within single html files.
 * [css-properties.html](http://dmolinarius.github.io/toys/css-properties.html) - Interactively play with an HTML span element CSS properties
 
   Update properties at will, and export obtained CSS or locally save work in a JSON file. Work may be retrieved by reloading the JSON file. Try for example to load
-[parents.json](http://dmolinarius.github/io/demofiles/toys/parents.json),
-[caesar.json](http://dmolinarius.github/io/demofiles/toys/caesar.json), or
-[pioupiou.json](http://dmolinarius.github/io/demofiles/toys/pioupiou.json). (last example background image is based on
+[parents.json](http://dmolinarius.github.io/demofiles/toys/parents.json),
+[caesar.json](http://dmolinarius.github.io/demofiles/toys/caesar.json), or
+[pioupiou.json](http://dmolinarius.github.io/demofiles/toys/pioupiou.json). (last example background image is based on
 [Erithacus_rubecula_with_cocked_head.jpg](https://commons.wikimedia.org/wiki/File:Erithacus_rubecula_with_cocked_head.jpg) with © Francis C. Franklin / CC-BY-SA-3.0)
 
 * [multiball.html](http://dmolinarius.github.io/toys/multiball.html) - Yet another application to throw balls on obstacles.
