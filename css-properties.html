@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+
+<title>Tuning CSS properties</title>
+<meta charset="utf-8">
+<style>
+/*
+** kind of a hack
+*/
+body {
+  min-width: 1192px;
+  position: relative;
+}
+pre {
+  min-width: 290px;
+}
+/*
+** bouton de commutation pour les propriétés des bordures
+*/
+#allborders {
+  position: absolute;
+  margin-top: 4px;
+  display: inline-block;
+  left: -4px;
+  padding: 0 7px 2px 4px;
+  box-shadow: inset -3px -3px 3px -1px #888, inset 3px 3px 3px -1px white;
+  border-radius: 2px;
+  cursor: pointer;
+  z-index: 10;
+}
+/*
+** pre flottants pour propriétés des bordures
+*/
+pre {
+  height: 11.33em;
+  line-height: 2em;
+  width: calc(25% - 2px);
+  float: left;
+  margin-top: 0;
+  position: relative;
+}
+/*
+** pre pour autres propriétés
+*/
+#otherprops {
+  clear: left;
+  width: calc(100% - 10px);
+  border-top: 1px solid grey;
+  height: auto;
+}
+#otherprops + pre {
+  clear: left;
+}
+/*
+** le contenant de l'élément modifié
+*/
+#main {
+  background-color: #ccc;
+  position: absolute;
+  height: calc(100vh - 19.5em);
+  width: calc(100% + 16px);
+  top: 19em;
+  left: -8px;
+  text-align: center;
+}
+/*
+** l'élément modifié
+*/
+#button {
+  margin-top: 40px;
+  display: inline-block;
+  font-size: 200%;
+  font: Arial, Helvetica, sans-serif;
+  text-align: center;
+}
+/*
+** présentation des champs de formulaire
+*/
+input[type=range] {
+  margin-top: 4px;
+  padding: 0;
+  border: medium;
+}
+select, input {
+  box-sizing: border-box;
+  position: absolute;
+  width: 6em;
+  left: 10em;
+}
+select.wide {
+  width: 10em;
+}
+select, input[type=text], input[type=color] {
+  margin-left: 5px; 
+  padding: 0 2px;
+  margin-top: 3px;
+}
+input[type=text] {
+  width: 10em;
+  margin-top: 4px;
+}
+.label {
+  display: inline-block;
+  width: 10em;
+  text-align: right;
+}
+.label.cheat {
+  margin-left: -1em;
+  width: 11em;
+}
+.label.cheat.more {
+  margin-left: -2.5em;
+  width: 12.5em;
+}
+.value {
+  position: absolute;
+  left: 18em;
+}
+.title {
+  font-weight: bold;
+  border-bottom: 1px solid grey;
+  width: calc(100% - 1.4em);
+  display: inline-block;
+  margin-left: 1.4em;
+}
+.notcss {
+  font-style: italic;
+}
+.col2 {
+  display: inline-block;
+  text-align: right;
+  margin-left: calc(10px - 1em);
+  width: 10em;
+  padding-right: calc(100% - 20em + 5px);
+  position: absolute;
+}
+.filer .label, .col2 {
+  background-color: #eee;
+}
+.filer .label {
+  margin-left: 0;
+  width: 10em;
+  padding-right: 1em;
+}
+input[type='file'] {
+  position: absolute;
+  left: 2em;
+  filter:alpha(opacity: 0);
+  opacity: 0;
+  cursor: pointer;
+  width: 7.5em;
+}
+a, #open_file {
+  color: blue;
+  text-decoration: none;
+}
+input:hover + #open_file, #save_file:hover, #export_file:hover {
+  color: red;
+}
+a:visited {
+  color: blue;
+}
+</style>
+
+<!-- bouton de commutation bordures communes / individuelles -->
+<div id="allborders">&lt;</div>
+
+<!-- modèle de réglages pour bordures -->
+<pre id="borders" style="display: none">
+<span class="title">Borders</span>
+<span class="label">padding:</span><input id="padding_" type="range" min="0" max="40"> <span id="padding_Value" class="value"></span>
+<span class="label">border-width:</span><input id="border_Width" type="range" min="0" max="10"> <span id="border_WidthValue" class="value"></span>
+<span class="label">border-style:</span><select id="border_Style">
+ <option>none
+ <option>hidden
+ <option>dotted
+ <option>dashed
+ <option>solid
+ <option>double
+ <option>groove
+ <option>ridge
+ <option>inset
+ <option>outset
+</select>
+<span class="label">border-color:</span><input id="border_Color" type="color">
+<span class="label">border-radius:</span><input id="border_Radius" type="range" min="0" max="100"> <span id="border_RadiusValue" class="value"></span>
+</pre>
+
+<!-- autres réglages -->
+<pre id="otherprops"></pre>
+<pre>
+<span class="label notcss">textContent:</span><input id="textContent" type="text" value="hello">
+<span class="label notcss">playground:</span><input id="playground" type="text" value="#ccc">
+<span class="label">color:</span><input id="color" type="color">
+<span class="label">opacity:</span><input id="opacity" type="range" min="0" max="100"><span id="opacityValue" class="value"></span>
+<span class="label">text-shadow:</span><input id="textShadow" type="text">
+</pre>
+<pre>
+<span class="label">font-family:</span><input id="fontFamily" type="text">
+<span class="label">font-weight:</span><select id="fontWeight"><option>normal<option>bold</select>
+<span class="label">font-style:</span><select id="fontStyle"><option>normal<option>italic</select>
+<span class="label">font-size:</span><input id="fontSize" type="range" min="10" max="200"><span id="fontSizeValue" class="value"></span>
+<span class="label">letter-spacing:</span><input id="letterSpacing" type="range" min="0" max="40"><span id="letterSpacingValue" class="value"></span>
+</pre>
+<pre>
+<span class="label cheat">background-color:</span><input id="backgroundColor" type="text">
+<span class="cheat label">background-image:</span><input id="backgroundImage" type="text">
+<span class="cheat more label">background-position:</span><input id="backgroundPosition" type="text">
+<span class="cheat label">background-repeat:</span><input id="backgroundRepeat" type="text">
+<div class="filer"><span class="label"></span><span class="col2"><input type="file" fileread="xx" id="read_file"></input><span id="open_file">open file...</span></span></div>
+</pre>
+<pre>
+<span class="cheat label">background-size:</span><input id="backgroundSize" type="text">
+<span class="cheat label">background-origin:</span><select id="backgroundOrigin" class="wide"><option>border-box<option>padding-box<option>content-box</select>
+<span class="cheat label">background-clip:</span><select id="backgroundClip" class="wide"><option>border-box<option>padding-box<option>content-box</select>
+<span class="label">box-shadow:</span><input id="boxShadow" type="text">
+<div class="filer"><span class="label"><a id="save_file" href="">save file...</a></span><span class="col2"><a id="export_file" href="">export CSS...</a></span></div>
+</pre>
+
+<!-- l'objet principal dont les propriétés seront dynamiquement modifiées -->
+<div id="main">
+  <span id="button">Hello</span>
+</div>
+
+<script type="text/javascript">
+  var all = borders;
+
+  // Event listener pour fond de page
+  function special() {
+    main.style.background = this.value;
+  }
+
+  // Event listener pour propriétés non CSS
+  function notcss() {
+    button[this.id] = this.value;
+    centerButton();
+  }
+
+  // Event listener pour propriétés en pixels
+  function pixel() {
+    button.style[this.id] = this.value + 'px';
+    show(this);
+    centerButton();
+  }
+
+  // Event listener pour propriétés littérales
+  function litteral() {
+    button.style[this.id] = this.value;
+    show(this);
+  }
+
+  // Event listener pour propriétés flottantes
+  function floatp() {
+    button.style[this.id] = parseInt(this.value,10)/100;
+    show(this);
+  }
+
+  // Recopie éventuelle de la valeur d'un champ
+  function show(input) {
+    if ( window[input.id+'Value'] )  {
+      window[input.id+'Value'].textContent = button.style[input.id];
+    }
+  }
+
+  // Calcule l'identifiant d'un champ pour les propriétés des bordures
+  function id(o) {
+    var id = o.parentNode.id;
+    if ( id && o.id.indexOf('border_Radius') === 0 ) id = corner_sides[border_sides.indexOf(id)];
+    return (o.id.indexOf('_') == -1) ? o.id : o.id.replace('_',id);
+  }
+
+  // Initialise les identifiants des champs pour les propriétés des bordures
+  function initBorderInputIds(pre) {
+    [].forEach.call(pre.querySelectorAll('input, select, span.value'), function(e) {
+      e.id = id(e);
+    });
+  }
+
+  // Attache un gestionnaire d'événement pour une propriété, et l'appelle
+  function addListener(prop,func) {
+    var w = window[prop]
+      , e = (w.tagName.toLowerCase() == 'select') ? 'change' : 'input'
+    ;
+    window[prop].addEventListener(e, func);
+    func.call(window[prop]);
+  }
+
+  // Recopie la valeur commune dans les champs des côtés individuels
+  function updateProps(props,sides) {
+    for ( p in props ) {
+      sides.forEach( function(s) {
+        var w = window[p.replace('_',s)];
+        w.value = window[p.replace('_','')].value;
+        show(w);
+      });
+    }
+  }
+
+  // Met à jour les 4 côtés de l'objet avec les propriétés communes
+  function syncProps(props) {
+    for ( p in props ) {
+        props[p].call(window[p.replace('_','')]);
+    }
+  }
+
+  // Affiche ou cache les réglages pour les bordures individuelles
+  function toggleBorderInputs() {
+    var state = Math.abs(border_states.indexOf(all.style.display));
+
+    all.style.display = border_states[1-state];
+    syncBorderInputs();
+
+    // on recopie la valeur commune dans les champs des côtés individuels
+    if ( state ) {
+      updateProps(border_props,border_sides);
+      updateProps(corner_props,corner_sides);
+      allborders.textContent = '<';
+      allborders.title = 'Set border shorthand properties';
+    }
+    // on met à jour les 4 côtés de l'objet avec les propriétés communes
+    else {
+      syncProps(border_props);
+      syncProps(corner_props);
+      allborders.textContent = '>';
+      allborders.title = 'Set individual border properties';
+    }
+ }
+
+ // Met à jour l'affichage des champs lors d'une commutation bordures communes / individuelles
+ function syncBorderInputs() {
+    var state = Math.abs(border_states.indexOf(all.style.display));
+
+    // affichage ou non des champs de côtés individuels
+    border_sides.forEach( function(s) { 
+      window[s].style.display = border_states[1-state];
+    });
+  }
+
+  // états du bouton de commutation
+  var border_states = ['none','block'];
+
+  /*
+  ** Liste des propriétés communes aux bordures
+  ** La position du caractère _ indique où insérer le nom du côté concerné
+  */
+  var border_props = {
+    border_Width: pixel,
+    padding_:     pixel,
+    border_Style: litteral,
+    border_Color: litteral
+  };
+  var corner_props = {
+    border_Radius: pixel
+  }
+
+  // liste des côtés des bordures
+  var border_sides = ['Top','Right','Bottom','Left'];
+  var corner_sides = ['TopLeft', 'TopRight', 'BottomRight', 'BottomLeft'];
+
+  // création des champs de réglage pour les 4 côtés inidividuels
+  border_sides.forEach( function(s,i) {
+    var pre = borders.cloneNode(true);
+    pre.id = s;
+    pre.getElementsByClassName('title')[0].textContent = s;
+    initBorderInputIds(pre);
+    borders.parentNode.insertBefore(pre,otherprops);
+    for ( p in border_props ) {
+      addListener(p.replace('_',s),border_props[p]);
+    }
+    for ( p in corner_props ) {
+      addListener(p.replace('_',corner_sides[i]),corner_props[p]);
+    }
+  });
+
+  // adaptation de la vue pour réglages communs aux 4 côtés
+  all.id = '';
+  initBorderInputIds(all);
+  for ( p in border_props ) {
+    addListener(p.replace('_',''),border_props[p]);
+  }
+  for ( p in corner_props ) {
+    addListener(p.replace('_',''),corner_props[p]);
+  }
+
+  // bouton de commutation bordures communes / individuelles
+  allborders.addEventListener('click',toggleBorderInputs);
+  toggleBorderInputs();
+
+  // autres propriétés
+  var other_props = {
+    backgroundColor:    litteral,
+    boxShadow:          litteral,
+    fontFamily:         litteral,
+    fontWeight:         litteral,
+    fontStyle:          litteral,
+    fontSize:           pixel,
+    color:              litteral,
+    letterSpacing:      pixel,
+    textShadow:         litteral,
+    textContent:        notcss,
+    opacity:            floatp,
+    backgroundClip:     litteral,
+    backgroundImage:    litteral,
+    backgroundPosition: litteral,
+    backgroundRepeat:   litteral,
+    backgroundSize:     litteral,
+    backgroundOrigin:   litteral,
+    playground:         special
+  };
+  
+  for ( p in other_props ) {
+    addListener(p,other_props[p]);
+  }
+
+
+  // centrage vertical du button
+  function centerButton(resizeEvent) {
+    button.style.marginTop = ((main.clientHeight - button.clientHeight)/2)+'px';
+  }
+  window.addEventListener('resize', centerButton);
+  centerButton();
+
+
+  // gestionnaires d'événement pour accès fichiers
+  read_file.addEventListener('change',fread);
+  save_file.addEventListener('click',fsave);
+  export_file.addEventListener('click',fexport);
+
+  // nom du fichier courant
+  var filename = '';
+
+  // Met à jour certaines propriétés du modèle local
+  function updateModel(model,props,s) {
+    var p, prop;
+    s = s || '';
+    for ( p in props ) {
+      prop = p.replace('_',s);
+      model[prop] = window[prop].value;
+    }
+  }
+
+  // Renvoie certaines propriétés CSS
+  function getCSS(props,s) {
+    var p, prop, v, css = '';
+    s = s || '';
+    for ( p in props ) {
+      prop = p.replace('_',s);
+      v = button.style[prop];
+      if ( typeof(v) != 'undefined' && v != '' ) {
+        css += '  ' + prop + ': ' + button.style[prop] +";\n";
+      }
+    }
+    return css;
+  }
+
+  // Met à jour la vue à partir de certaines propriétés du modèle local
+  function updateVue(model,props,s) {
+    var p, prop;
+    s = s || '';
+    for ( p in props ) {
+      prop = p.replace('_',s);
+      window[prop].value = model[prop];
+      props[p].call(window[prop]);
+    }
+  }
+
+  /*
+  ** Permet d'enregistrer les valeurs courantes dans un fichier au format json
+  **
+  ** Il s'agit d'un gestionnaire de click d'un hyperlien classique
+  ** à qui l'on forge une URL data: et un attribut download [HTML5]
+  */
+  function fsave(event) {
+    var data = {
+          borderShorthand: Math.abs(border_states.indexOf(all.style.display))
+        }
+      , uri = 'data:application/json;base64,'
+      , str = '', filename
+    ;
+
+    // construction du modèle
+    if ( data.borderShorthand ) {
+      updateModel(data,border_props);
+      updateModel(data,corner_props);
+    }
+    else {
+      border_sides.forEach( function(s) {
+        updateModel(data,border_props,s);
+      });
+      corner_sides.forEach( function(s) {
+        updateModel(data,corner_props,s);
+      });
+    }
+    updateModel(data,other_props);
+
+    // construction de l'URL
+    str = JSON.stringify(data);
+    uri += btoa(str);
+    event.target.href = uri;
+
+    // nom de fichier
+    filename = prompt('Save filename',window.filename||'properties.json');
+    if ( ! filename ) { 
+      event.preventDefault();
+      return false;
+    }
+    window.filename = filename;
+    event.target.download = filename;
+
+    console.log('from fsave',data);
+  }
+
+  // export - comme save, au format CSS au lieu de json
+  function fexport(event) {
+    var uri = 'data:text/css;base64,'
+      , css = "/*\n** button text: '" + button.textContent + "'\n*/\n"
+      , state = Math.abs(border_states.indexOf(all.style.display))
+      , filename
+    ;
+
+    // propriétés générales
+    css += "#playground {\n" + "  background: " + main.style.background + ";\n}\n"
+
+    // propriétés du button
+    css += "#button {\n";
+    if ( state ) {
+      css += getCSS(border_props);
+      css += getCSS(corner_props);
+    }
+    else {
+      border_sides.forEach( function(s) {
+        css += getCSS(border_props,s);
+      });
+      corner_sides.forEach( function(s) {
+        css += getCSS(corner_props,s);
+      });
+    }
+    css += getCSS(other_props);
+    css += "}\n";
+
+    // construction de l'URL
+    uri += btoa(css);
+    event.target.href = uri;
+
+    // nom de fichier
+    filename = prompt('Export filename','export.css');
+    if ( ! filename ) { 
+      event.preventDefault();
+      return false;
+    }
+    event.target.download = filename;
+
+    console.log('from fexport',css);
+  }
+
+  /*
+  ** Mise à jour de la vue avec les valeurs tirées d'un fichier
+  ** json obtenu par la fonction fsave
+  **
+  ** Il s'agit d'un gestionnaire onchange d'un <input type="file">
+  ** (caché) pour le choix du fichier, qu'on lit avec un FileReader
+  */
+  function fread(changeEvent) {
+    var reader = new FileReader();
+    reader.onload = function (loadEvent) {
+      var raw_data = loadEvent.target.result
+        , data
+      ;
+      if ( raw_data ) {
+        data = JSON.parse(atob(raw_data.split(',')[1]))
+        console.log('from fread',data);
+
+        // mise à jour de la vue
+        if ( data.borderShorthand ) {
+          all.style.display = 'block';
+          syncBorderInputs();
+          updateVue(data,border_props);
+          updateVue(data,corner_props);
+        }
+        else {
+          all.style.display = 'none';
+          syncBorderInputs();
+          border_sides.forEach( function(s) {
+            updateVue(data,border_props,s);
+          });
+          corner_sides.forEach( function(s) {
+            updateVue(data,corner_props,s);
+          });
+        }
+        updateVue(data,other_props);
+      }
+      window.filename = changeEvent.target.files[0].name
+    }
+    reader.readAsDataURL(changeEvent.target.files[0]);
+  }
+
+</script>
+
