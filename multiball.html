@@ -831,7 +831,12 @@ class Block {
       borders.splice(borders.indexOf(w),1);
     });
     blocks.splice(blocks.indexOf(this),1);
-    this.elt.parentNode.removeChild(this.elt);
+    if ( this.elt.parentNode ) {
+      this.elt.parentNode.removeChild(this.elt);
+    }
+    else {
+      console.log('Unparented Block elt ',this);
+    }
   }
 }
 
