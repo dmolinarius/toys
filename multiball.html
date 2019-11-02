@@ -305,7 +305,7 @@ class Ball {
   set_double() {
     this.double = true;
     this.default_color = '#0f0';
-    this.color = this.default_color;
+    this.color = this.can_bounce() ? '#0ff' : this.default_color;
   }
   unset_double() {
     this.double = false;
@@ -714,9 +714,9 @@ class Doubler extends Bonus {
       , dx = ball.dx
       , dy = ball.dy
     ;
+    // if ball is not doubled (green)
+    // and has not yet been doubled during current animation step
     if ( !ball.is_double() && this.doubled[ball.id] != step) {
-      // remember we already doubled this ball during the current animation step
-      this.doubled[ball.id] = step;
 
       // prepare to move to the contact point and to bounce
       info.minm = check.minm;
@@ -730,7 +730,16 @@ class Doubler extends Bonus {
       ball2.y = ball.y + info.minm * info.dist * dy;
       ball2.dx = dx * Math.cos(-alpha) - dy * Math.sin(-alpha);
       ball2.dy = dx * Math.sin(-alpha) + dy * Math.cos(-alpha);
-      ball2.set_double();
+
+      // mark one of the two balls as doubled (green), and avoid doubling
+      // the other one again during the current animation step
+      let dice = random_int(2)-1
+        , choice = [ball,ball2]
+      ;
+      choice[dice].set_double();
+      this.doubled[choice[1-dice].id] = step;
+
+      // bounce new ball on Bonus and register it
       ball2.move(info.dist*(1-info.minm)); // may bounce
       balls.push(ball2);
     }
