@@ -141,13 +141,45 @@ html, body {
   box-shadow: inset 0 0 3px #300, 5px 5px 5px rgba(0,30,10,0.6);
   background: linear-gradient(#050,#192,#050);
 }
-#level_label {
-  color: rgba(255,255,255,0.6);
-  position: absolute;
+#banner {
   width: 100%;
+}
+#level_label {
+  position: absolute;
+  left: 33%;
+  width: 34%;
+  color: rgba(255,255,255,0.6);
   text-align: center;
   line-height: 9vmin;
   font-size: 3.5vmin;
+}
+#load_label {
+  position: absolute;
+  left: 0;
+  width: 33%;
+  text-align: center;
+}
+#load_file {
+  filter:alpha(opacity: 0);
+  opacity: 0;
+  font-size: 2.2vmin;
+  width: 3.2em;
+  display: inline;
+  top: 3vmin;
+}
+#save_label {
+  position: absolute;
+  left: 67%;
+  width: 33%;
+  text-align: center;
+}
+#load_label span, #save_label a {
+  text-decoration: none;
+  color: rgba(255,255,255,0.2);
+  line-height: 9vmin;
+  font-size: 2vmin;
+  padding: 0.2vmin 1vmin;
+  border: 2px outset;
 }
 #toolbox {
   position: absolute;
@@ -215,7 +247,11 @@ output {
 
 <!-- where blocks live -->
 <div id="board">
-  <div id="level_label">level 1</div>
+  <div id="banner">
+   <div id="level_label">level 1</div>
+   <div id="load_label"><input type="file" id="load_file"></input><span>load</span></div>
+   <div id="save_label"><a id="save_file" href="">save</a></div>
+  </div>
   <div id='toolbox'>
    <label id="balls_label">balls <output id="balls_value"></output></label>
    <label id="credits_label">credits <output id="credits_value"></output></label>
@@ -660,7 +696,7 @@ class Bonus extends Sphere {
 ** Bonus to load one more ball into launcher
 **
 ** ***************************************************************************/
-class LauncherLoader extends Bonus {
+window.LauncherLoader = class LauncherLoader extends Bonus {
   init() {
     this.elt.style.borderColor = 'rgba(255,90,0,0.9)';
     this.elt.style.backgroundColor = 'rgba(255,90,0,0.5)';
@@ -677,7 +713,7 @@ class LauncherLoader extends Bonus {
 ** Bonus to let balls bounce on bottom
 **
 ** ***************************************************************************/
-class Bouncer extends Bonus {
+window.Bouncer = class Bouncer extends Bonus {
   init() {
     this.elt.style.borderColor = 'rgba(255,0,255,0.9)';
     this.elt.style.backgroundColor = 'rgba(255,0,255,0.5)';
@@ -699,7 +735,7 @@ class Bouncer extends Bonus {
 ** Bonus to double balls
 **
 ** ***************************************************************************/
-class Doubler extends Bonus {
+window.Doubler = class Doubler extends Bonus {
   init() {
     this.elt.style.borderColor = 'rgba(0,255,0,0.9)';
     this.elt.style.backgroundColor = 'rgba(0,255,0,0.5)';
@@ -850,7 +886,7 @@ class Block {
 }
 
 // Square block
-class Square extends Block {
+window.Square = class Square extends Block {
   init() {
     this.elt.classList.add('square');
     this.show_level();
@@ -887,7 +923,7 @@ class Triangle extends Block {
 }
 
 // Top left triangular block
-class TopLeftTriangle extends Triangle {
+window.TopLeftTriangle = class TopLeftTriangle extends Triangle {
   init() {
     super.init();
     this.elt.classList.add('topleft');
@@ -906,7 +942,7 @@ class TopLeftTriangle extends Triangle {
 }
 
 // Top right triangular block
-class TopRightTriangle extends Triangle {
+window.TopRightTriangle = class TopRightTriangle extends Triangle {
   init() {
     super.init();
     this.elt.classList.add('topright');
@@ -925,7 +961,7 @@ class TopRightTriangle extends Triangle {
 }
 
 // Bottom right triangular block
-class BottomRightTriangle extends Triangle {
+window.BottomRightTriangle = class BottomRightTriangle extends Triangle {
   init() {
     super.init();
     this.elt.classList.add('bottomright');
@@ -944,7 +980,7 @@ class BottomRightTriangle extends Triangle {
 }
 
 // Bottom left triangular block
-class BottomLeftTriangle extends Triangle {
+window.BottomLeftTriangle = class BottomLeftTriangle extends Triangle {
   init() {
     super.init();
     this.elt.classList.add('bottomleft');
@@ -1397,6 +1433,132 @@ function change_speed() {
 }
 
 /*
+** Mouse event handler attached to  body, bound to chosen button.
+** Since top banner buttons lie behind canvas, they don't receive mouse events.
+** Thus, we need to dispatch the events to the right target depending on mouse
+** coordinates, and avoid the events to be transmitted to the playground.
+*/
+function attachClickListener(target,cb) {
+
+  // capture events and route them to proper dispatcher
+  let dispatcher = dispatch.bind(target);
+  document.body.addEventListener('mousedown',dispatcher,true);
+  document.body.addEventListener('click',dispatcher,true);
+
+  // add target click listener
+  target.addEventListener('click',cb);
+}
+
+/*
+** Eventually dispatch event to right target and avoid propagation
+*/
+function dispatch(e) {
+
+  // if cursor hovers the target, and event is not synthetic
+  if ( contains(this,e) && !e.dispatched ) {
+
+    // clone the event
+    let ev = new e.constructor(e.type,e);
+    ev.dispatched = true;
+
+    // trigger event on target
+    this.dispatchEvent(ev);
+
+    // avoid event to be sent to playground
+    e.stopPropagation();
+
+    // target could be a hyperlink...
+    e.preventDefault();
+  }
+}
+
+// check if mouse event occured on top of element
+function contains(elt,event) {
+  let rect = elt.getBoundingClientRect(),
+    x = event.clientX
+    y = event.clientY
+  ;
+  return (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)
+}
+
+
+/*
+** save state
+*/
+function save(e) {
+  let info = get_state()
+    , uri = 'data:text/csv;base64,' + btoa(JSON.stringify(info))
+    , now = new Date()
+    , details = [now.getMonth()+1,now.getDate(),now.getHours(),now.getMinutes(),now.getSeconds()]
+    , filename = 'multiball_' + level + '.'
+        + now.getFullYear()
+        + details.map(x => ("0"+x).slice(-2)).join('')
+        +'.json'
+  ;
+  //console.log('saving',filename,uri);
+  e.target.href = uri;
+  e.target.download = filename;
+}
+function get_state() {
+  return {
+    nballs, level, credits,
+    speed: speed_input.value,
+    launcher: {
+      position: launcher.position
+    },
+    blocks: blocks.reduce((bks,b) => {
+      bks.push({
+        class: b.constructor.name,
+        col: b.col,
+        row: b.row,
+        level: b.level || null
+      });
+      return bks;
+    },[])
+  }
+}
+
+/*
+** load state
+*/
+function load(e) {
+  let file = e.target.files[0];
+  if ( file.type == 'application/json' ) {
+    let reader = new FileReader();
+    reader.onload = e => set_state(JSON.parse(e.target.result));
+    reader.readAsText(file);
+  }
+  //console.log('loaded',file);
+}
+function set_state(data) {
+
+  // set state variables
+  set_nballs(data.nballs);
+  set_level(data.level);
+  set_credits(data.credits);
+  speed_input.value = data.speed;
+  change_speed();
+
+  // remove all blocks, borders and walls
+  while( blocks[0] ) blocks[0].delete();
+
+  // set loaded blocks and bonuses
+  data.blocks.forEach(b => {
+    blocks.push(new window[b.class](b.col,b.row,b.level));
+  });
+  blocks.forEach(b => b.resize());
+  init_borders();
+
+  // set launcher
+  launcher.position = data.launcher.position;
+  launcher.resize(ctx);
+
+  // update view
+  redraw();
+}
+
+
+/*
 ** main program
 */
 initialize();
@@ -1406,4 +1568,8 @@ speed_input.addEventListener('input',change_speed);
 lost.addEventListener('click',new_game);
 won.addEventListener('click',start_next_level);
 
+// canvas lies on top of top banner buttons, a trick is needed
+attachClickListener(save_file,save);
+attachClickListener(load_file,e=>null);
+load_file.addEventListener('change',load);
 </script>
