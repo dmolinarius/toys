@@ -1287,6 +1287,8 @@ function fire(e) {
         ;
         if ( d > radius*3 ) launch_ball();
       }
+      // display number of remaining balls to launch
+      balls_value.textContent = nballs - launched_balls;
     }
 
     // move all balls forward and redraw
@@ -1335,6 +1337,7 @@ function next_turn() {
     });
   }
   else next_level();
+  balls_value.textContent = nballs;
 }
 
 /*
