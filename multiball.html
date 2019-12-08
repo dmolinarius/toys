@@ -290,7 +290,9 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , nloop             // recursion loop safeguard
   , credits = 0       // player credits
   , step = 0          // current animation step id
+  , isTouch = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0))
 ;
+
 
 /* ****************************************************************************
 **
@@ -1210,6 +1212,11 @@ function erase() {
 ** mouse down on canvas - start shooting
 */
 function start_shooting(e) {
+  if ( e.type == "touchstart" ) {
+    playground.removeEventListener('touchstart',start_shooting);
+    playground.addEventListener('touchmove',shoot);
+    playground.addEventListener('touchend',fire);
+  }
   playground.removeEventListener('mousedown',start_shooting);
   playground.addEventListener('mousemove',shoot);
   playground.addEventListener('mouseup',fire);
@@ -1218,9 +1225,13 @@ function start_shooting(e) {
 /*
 ** mouse move on canvas - shoot
 */
+beenhere = false;
 function shoot(e) {
-  var x = e.layerX - bw
-    , y = Math.min(launcher.y - radius, e.layerY - bw)
+  var o = (e.type == "touchmove") ? e.changedTouches[0] : e
+    , layerX = o.layerX || o.pageX - e.target.offsetLeft
+    , layerY = o.layerY || o.pageY - e.target.offsetTop
+    , x = layerX - bw
+    , y = Math.min(launcher.y - radius, layerY - bw)
   ;
   state = 'shooting';
 
@@ -1243,7 +1254,9 @@ function shoot(e) {
 */
 function fire(e) {
   playground.removeEventListener('mousemove',shoot);
+  playground.removeEventListener('touchmove',shoot);
   playground.removeEventListener('mouseup',fire);
+  playground.removeEventListener('touchend',fire);
 
   let start = null          // animation start timestamp
     , previous = null       // previous animation step timestamp
@@ -1321,6 +1334,7 @@ function home(e) {
 function stop() {
   state = 'waiting';
   playground.addEventListener('mousedown',start_shooting);
+  if ( isTouch ) playground.addEventListener('touchstart',start_shooting);
 }
 
 /*
@@ -1395,6 +1409,7 @@ function game_over(elt) {
 function new_game() {
   balls = [];
   playground.addEventListener('mousedown',start_shooting);
+  if ( isTouch ) playground.addEventListener('touchstart',start_shooting);
   lost.style.display='none';
 
   if ( credits > 0 ) {
@@ -1421,6 +1436,7 @@ function new_game() {
 function start_next_level() {
   balls = [];
   playground.addEventListener('mousedown',start_shooting);
+  if ( isTouch ) playground.addEventListener('touchstart',start_shooting);
   won.style.display='none';
   set_credits(credits+1);
   next_level();
@@ -1567,6 +1583,7 @@ function set_state(data) {
 initialize();
 window.onresize = resize;
 playground.addEventListener('mousedown',start_shooting);
+if ( isTouch ) playground.addEventListener('touchstart',start_shooting);
 speed_input.addEventListener('input',change_speed);
 lost.addEventListener('click',new_game);
 won.addEventListener('click',start_next_level);
