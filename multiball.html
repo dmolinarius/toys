@@ -1350,7 +1350,6 @@ function next_turn() {
     });
   }
   else next_level();
-  balls_value.textContent = nballs;
 }
 
 /*
@@ -1363,6 +1362,7 @@ function next_level() {
   update_blocks();
   blocks.forEach(b => b.resize());
   init_borders();
+  balls_value.textContent = nballs;
   redraw();
 }
 
