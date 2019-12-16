@@ -1230,6 +1230,7 @@ function start_shooting(e) {
 beenhere = false;
 function shoot(e) {
   let cursor = rotate_launcher(e);
+  load_file.setAttribute('disabled','');
   state = 'shooting';
 
   ctx.save();
@@ -1271,10 +1272,7 @@ function abort_shooting() {
   playground.removeEventListener('mouseup',fire);
   playground.removeEventListener('touchend',fire);
 
-  playground.addEventListener('mousedown',start_shooting);
-  if ( isTouch ) playground.addEventListener('touchstart',start_shooting);
-
-  state = 'waiting';
+  stop();
   erase();
   launcher.draw(ctx);
 }
@@ -1366,6 +1364,7 @@ function stop() {
   state = 'waiting';
   playground.addEventListener('mousedown',start_shooting);
   if ( isTouch ) playground.addEventListener('touchstart',start_shooting);
+  load_file.removeAttribute('disabled');
 }
 
 /*
@@ -1545,9 +1544,11 @@ function save(e) {
         + details.map(x => ("0"+x).slice(-2)).join('')
         +'.json'
   ;
-  //console.log('saving',filename,uri);
-  e.target.href = uri;
-  e.target.download = filename;
+  if ( state == 'waiting' ) {
+    e.target.href = uri;
+    e.target.download = filename;
+  }
+  else e.preventDefault();
 }
 function get_state() {
   return {
@@ -1621,6 +1622,6 @@ won.addEventListener('click',start_next_level);
 
 // canvas lies on top of top banner buttons, a trick is needed
 attachClickListener(save_file,save);
-attachClickListener(load_file,e=>null);
+attachClickListener(load_file,e=>e.target.disabled && e.preventDefault());
 load_file.addEventListener('change',load);
 </script>
