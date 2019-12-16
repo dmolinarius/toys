@@ -1217,8 +1217,11 @@ function start_shooting(e) {
     playground.addEventListener('touchend',fire);
   }
   playground.removeEventListener('mousedown',start_shooting);
+  playground.addEventListener('mouseleave',abort_shooting);
   playground.addEventListener('mousemove',shoot);
   playground.addEventListener('mouseup',fire);
+
+  rotate_launcher(e);
 }
 
 /*
@@ -1226,32 +1229,61 @@ function start_shooting(e) {
 */
 beenhere = false;
 function shoot(e) {
-  var o = (e.type == "touchmove") ? e.changedTouches[0] : e
-    , layerX = o.layerX || o.pageX - e.target.offsetLeft
-    , layerY = o.layerY || o.pageY - e.target.offsetTop
-    , x = layerX - bw
-    , y = Math.min(launcher.y - radius, layerY - bw)
-  ;
+  let cursor = rotate_launcher(e);
   state = 'shooting';
-
-  erase();
-  launcher.lookat(x,y);
-  launcher.draw(ctx);
 
   ctx.save();
   ctx.strokeStyle = 'white';
   ctx.setLineDash([2,2]);
   ctx.beginPath();
   ctx.moveTo(launcher.x,launcher.y);
-  ctx.lineTo(x,y);
+  ctx.lineTo(cursor.x,cursor.y);
   ctx.stroke();
   ctx.restore();
+}
+
+
+/*
+** orient laucher towards cursor
+*/
+function rotate_launcher(e) {
+  var o = (e.type.indexOf("touch") === 0) ? e.changedTouches[0] : e
+    , layerX = o.layerX || o.pageX - e.target.offsetLeft
+    , layerY = o.layerY || o.pageY - e.target.offsetTop
+    , x = layerX - bw
+    , y = Math.min(launcher.y - radius, layerY - bw)
+  ;
+
+  erase();
+  launcher.lookat(x,y);
+  launcher.draw(ctx);
+
+  return {x,y};
+}
+
+/*
+** abort shooting
+*/
+function abort_shooting() {
+  playground.removeEventListener('mouseleave',abort_shooting);
+  playground.removeEventListener('mousemove',shoot);
+  playground.removeEventListener('touchmove',shoot);
+  playground.removeEventListener('mouseup',fire);
+  playground.removeEventListener('touchend',fire);
+
+  playground.addEventListener('mousedown',start_shooting);
+  if ( isTouch ) playground.addEventListener('touchstart',start_shooting);
+
+  state = 'waiting';
+  erase();
+  launcher.draw(ctx);
 }
 
 /*
 ** mouse up on canvas - fire balls
 */
 function fire(e) {
+  playground.removeEventListener('mouseleave',abort_shooting);
   playground.removeEventListener('mousemove',shoot);
   playground.removeEventListener('touchmove',shoot);
   playground.removeEventListener('mouseup',fire);
