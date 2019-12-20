@@ -1378,9 +1378,10 @@ function next_turn() {
     else bns.forEach(function(b) {
       if (b instanceof LauncherLoader) b.hit(); // calls b.delete()
       else b.delete()
+      next_level();
     });
   }
-  next_level();
+  else next_level();
 }
 
 /*
