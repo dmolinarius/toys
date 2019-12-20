@@ -243,6 +243,19 @@ output {
   top: 1.5em;
   position: absolute;
 }
+#stats {
+  position: absolute;
+  border: 1px solid black;
+}
+#stats label {
+  position: static;
+  padding: 1vmin;
+  display: block;
+  box-sizing: border-box;
+}
+#stats * {
+  font-size: 2vmin;
+}
 </style>
 
 <!-- where blocks live -->
@@ -272,6 +285,11 @@ output {
 <!-- Congrats message -->
 <div id="won">Congratulations<br>you completed level !</div>
 
+<!-- Statistics -->
+<div id="stats">
+ <div id="efficiency"><label>efficiency : <output id="efficiency_value"></output></Label></div>
+</div>
+
 <script>
 var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-width'),10)
   , ctx = playground.getContext('2d') // canvas context
@@ -290,6 +308,7 @@ var bw = parseInt(getComputedStyle(playground).getPropertyValue('border-top-widt
   , nloop             // recursion loop safeguard
   , credits = 0       // player credits
   , step = 0          // current animation step id
+  , blocksum = 0      // sum of block
   , isTouch = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0))
 ;
 
@@ -807,6 +826,7 @@ class Block {
     this.repaint();
     this.resize();
     window.board.appendChild(this.elt);
+    window.blocksum += level;
   }
 
   /*
@@ -862,6 +882,7 @@ class Block {
   */
   hit(info) {
     this.level = this.level - 1;
+    window.blocksum -= 1;
     this.show_level();
     if ( this.level < 1 ) this.delete();
     else this.repaint();
@@ -873,6 +894,7 @@ class Block {
   ** & delete DOM element
   */
   delete() {
+    if ( this.level > 0 ) window.blocksum -= this.level;
     borders.filter(w => w.owner == this).forEach(w => {
       borders.splice(borders.indexOf(w),1);
     });
@@ -1289,6 +1311,7 @@ function fire(e) {
 
   let start = null          // animation start timestamp
     , previous = null       // previous animation step timestamp
+    , original_blocksum = blocksum
   ;
   step = 0;
   state = 'playing';
@@ -1315,6 +1338,13 @@ function fire(e) {
       previous = start;
     }
     step += 1;
+
+    // compute efficiency
+    if ( launched_balls ) {
+      window.efficiency_value.textContent = new Intl.NumberFormat('en-UK',
+        {minimumFractionDigits:2, maximumFractionDigits:2}
+      ).format((original_blocksum-blocksum)/launched_balls);
+    }
 
     // while some balls still to launch ...
     if ( state=='playing' && launched_balls < nballs ) {
