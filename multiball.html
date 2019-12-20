@@ -1340,7 +1340,7 @@ function fire(e) {
     step += 1;
 
     // compute efficiency
-    if ( launched_balls ) {
+    if ( state == 'playing' && launched_balls ) {
       window.efficiency_value.textContent = new Intl.NumberFormat('en-UK',
         {minimumFractionDigits:2, maximumFractionDigits:2}
       ).format((original_blocksum-blocksum)/launched_balls);
