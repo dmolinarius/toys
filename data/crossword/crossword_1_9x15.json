@@ -1,0 +1,459 @@
+{
+  "hcells": 9,
+  "vcells": 15,
+  "mode": "solve",
+  "data": [
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "h",
+      "def": "Troisième dans la liste",
+      "val": "IL"
+    },
+    {
+      "h": 4,
+      "v": 1,
+      "orient": "h",
+      "def": "Durée",
+      "val": "AN"
+    },
+    {
+      "h": 7,
+      "v": 1,
+      "orient": "h",
+      "def": "Pris connaissance",
+      "val": "LU"
+    },
+    {
+      "h": 2,
+      "v": 2,
+      "orient": "h",
+      "def": "Livreur",
+      "val": "UPS"
+    },
+    {
+      "h": 6,
+      "v": 2,
+      "orient": "h",
+      "def": "Contrepoids",
+      "val": "TARE"
+    },
+    {
+      "h": 1,
+      "v": 3,
+      "orient": "h",
+      "def": "Excommunications",
+      "val": "ANATHEMES"
+    },
+    {
+      "h": 1,
+      "v": 4,
+      "orient": "h",
+      "def": "A la source de la transparence",
+      "val": "VERRERIES"
+    },
+    {
+      "h": 1,
+      "v": 5,
+      "orient": "h",
+      "def": "Au plus bas",
+      "val": "ATTERRE"
+    },
+    {
+      "h": 1,
+      "v": 6,
+      "orient": "h",
+      "def": "Parfois anonyme",
+      "val": "STE"
+    },
+    {
+      "h": 5,
+      "v": 6,
+      "orient": "h",
+      "def": "Matou de la Tour du Pin",
+      "val": "MIRON"
+    },
+    {
+      "h": 1,
+      "v": 7,
+      "orient": "h",
+      "def": "Fibre de polyester",
+      "val": "TERGAL"
+    },
+    {
+      "h": 8,
+      "v": 7,
+      "orient": "h",
+      "def": "Note",
+      "val": "UT"
+    },
+    {
+      "h": 3,
+      "v": 8,
+      "orient": "h",
+      "def": "Repose en paix",
+      "val": "RIP"
+    },
+    {
+      "h": 7,
+      "v": 8,
+      "orient": "h",
+      "def": "Sept",
+      "val": "VII"
+    },
+    {
+      "h": 1,
+      "v": 9,
+      "orient": "h",
+      "def": "Gaie",
+      "val": "EMECHEE"
+    },
+    {
+      "h": 1,
+      "v": 10,
+      "orient": "h",
+      "def": "Mesure la nocivité des mobiles",
+      "val": "DAS"
+    },
+    {
+      "h": 5,
+      "v": 10,
+      "orient": "h",
+      "def": "Italien",
+      "val": "RITAL"
+    },
+    {
+      "h": 1,
+      "v": 11,
+      "orient": "h",
+      "def": "A la mode",
+      "val": "IN"
+    },
+    {
+      "h": 4,
+      "v": 11,
+      "orient": "h",
+      "def": "Produit de hacker",
+      "val": "CODE"
+    },
+    {
+      "h": 1,
+      "v": 12,
+      "orient": "h",
+      "def": "Envolée lyrique",
+      "val": "TIRADE"
+    },
+    {
+      "h": 8,
+      "v": 12,
+      "orient": "h",
+      "def": "Association politique",
+      "val": "UE"
+    },
+    {
+      "h": 1,
+      "v": 13,
+      "orient": "h",
+      "def": "Nous poserons",
+      "val": "ALUNIRONS"
+    },
+    {
+      "h": 1,
+      "v": 14,
+      "orient": "h",
+      "def": "Personnel",
+      "val": "IL"
+    },
+    {
+      "h": 4,
+      "v": 14,
+      "orient": "h",
+      "def": "Il a bon do",
+      "val": "UT"
+    },
+    {
+      "h": 7,
+      "v": 14,
+      "orient": "h",
+      "def": "Pouffé",
+      "val": "RI"
+    },
+    {
+      "h": 1,
+      "v": 15,
+      "orient": "h",
+      "def": "Elles peuvent toujours essayer !",
+      "val": "TESTEUSES"
+    },
+    {
+      "h": 1,
+      "v": 3,
+      "orient": "v",
+      "def": "Virucide",
+      "val": "AVAST"
+    },
+    {
+      "h": 1,
+      "v": 9,
+      "orient": "v",
+      "def": "Publiait",
+      "val": "EDITAIT"
+    },
+    {
+      "h": 2,
+      "v": 1,
+      "orient": "v",
+      "def": "Téléscope",
+      "val": "LUNETTE"
+    },
+    {
+      "h": 2,
+      "v": 9,
+      "orient": "v",
+      "def": "Pour boucler une chaîne",
+      "val": "MANILLE"
+    },
+    {
+      "h": 3,
+      "v": 2,
+      "orient": "v",
+      "def": "Au fond l'Opéra",
+      "val": "PARTERRES"
+    },
+    {
+      "h": 3,
+      "v": 12,
+      "orient": "v",
+      "def": "Ruisseau",
+      "val": "RU"
+    },
+    {
+      "h": 4,
+      "v": 1,
+      "orient": "v",
+      "def": "Planète",
+      "val": "ASTRE"
+    },
+    {
+      "h": 4,
+      "v": 7,
+      "orient": "v",
+      "def": "Grand corps malade",
+      "val": "GIC"
+    },
+    {
+      "h": 4,
+      "v": 11,
+      "orient": "v",
+      "def": "Artisan lyonnais",
+      "val": "CANUT"
+    },
+    {
+      "h": 5,
+      "v": 3,
+      "orient": "v",
+      "def": "Comme les escargots",
+      "val": "HERMAPHRODITE"
+    },
+    {
+      "h": 6,
+      "v": 2,
+      "orient": "v",
+      "def": "Tas noir",
+      "val": "TERRIL"
+    },
+    {
+      "h": 6,
+      "v": 9,
+      "orient": "v",
+      "def": "Migrateur",
+      "val": "EIDER"
+    },
+    {
+      "h": 7,
+      "v": 1,
+      "orient": "v",
+      "def": "Plante herbacée",
+      "val": "LAMIER"
+    },
+    {
+      "h": 7,
+      "v": 8,
+      "orient": "v",
+      "def": "Habille",
+      "val": "VETE"
+    },
+    {
+      "h": 7,
+      "v": 13,
+      "orient": "v",
+      "def": "Décorations",
+      "val": "ORS"
+    },
+    {
+      "h": 8,
+      "v": 1,
+      "orient": "v",
+      "def": "Engrais azoté",
+      "val": "UREE"
+    },
+    {
+      "h": 8,
+      "v": 6,
+      "orient": "v",
+      "def": "Pour accord",
+      "val": "OUI"
+    },
+    {
+      "h": 8,
+      "v": 12,
+      "orient": "v",
+      "def": "Monochrome",
+      "val": "UNIE"
+    },
+    {
+      "h": 9,
+      "v": 2,
+      "orient": "v",
+      "def": "Nécessaires",
+      "val": "ESSENTIELLES"
+    }
+  ],
+  "cells": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ]
+}

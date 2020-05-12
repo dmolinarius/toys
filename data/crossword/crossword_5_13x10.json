@@ -1,0 +1,447 @@
+{
+  "hcells": 13,
+  "vcells": 10,
+  "mode": "solve",
+  "data": [
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "h",
+      "def": "Remises",
+      "val": "AJOURNEES"
+    },
+    {
+      "h": 1,
+      "v": 2,
+      "orient": "h",
+      "def": "Actions de porter à la connaissance du monde",
+      "val": "PUBLICATIONS"
+    },
+    {
+      "h": 1,
+      "v": 3,
+      "orient": "h",
+      "def": "Vomitif",
+      "val": "IPECA"
+    },
+    {
+      "h": 9,
+      "v": 3,
+      "orient": "h",
+      "def": "Répudiait",
+      "val": "NIAIT"
+    },
+    {
+      "h": 1,
+      "v": 4,
+      "orient": "h",
+      "def": "Imperméable",
+      "val": "CIRE"
+    },
+    {
+      "h": 6,
+      "v": 4,
+      "orient": "h",
+      "def": "Aérés",
+      "val": "OXYGENES"
+    },
+    {
+      "h": 1,
+      "v": 5,
+      "orient": "h",
+      "def": "Source de vie",
+      "val": "UTERUS"
+    },
+    {
+      "h": 8,
+      "v": 5,
+      "orient": "h",
+      "def": "Mouron des oiseaux",
+      "val": "ALSINE"
+    },
+    {
+      "h": 1,
+      "v": 6,
+      "orient": "h",
+      "def": "Ariégeoise",
+      "val": "LERANAISE"
+    },
+    {
+      "h": 11,
+      "v": 6,
+      "orient": "h",
+      "def": "Poteau",
+      "val": "MAT"
+    },
+    {
+      "h": 1,
+      "v": 7,
+      "orient": "h",
+      "def": "Allures",
+      "val": "TROTS"
+    },
+    {
+      "h": 7,
+      "v": 7,
+      "orient": "h",
+      "def": "Parfois radieux",
+      "val": "ASTRE"
+    },
+    {
+      "h": 3,
+      "v": 8,
+      "orient": "h",
+      "def": "Pas l'un, pas l'autre",
+      "val": "NI"
+    },
+    {
+      "h": 6,
+      "v": 8,
+      "orient": "h",
+      "def": "Général Athénien",
+      "val": "CLEON"
+    },
+    {
+      "h": 12,
+      "v": 8,
+      "orient": "h",
+      "def": "Cube",
+      "val": "DE"
+    },
+    {
+      "h": 1,
+      "v": 9,
+      "orient": "h",
+      "def": "Induisons en erreur",
+      "val": "RUSONS"
+    },
+    {
+      "h": 8,
+      "v": 9,
+      "orient": "h",
+      "def": "Artère principale",
+      "val": "RN"
+    },
+    {
+      "h": 11,
+      "v": 9,
+      "orient": "h",
+      "def": "En",
+      "val": "ES"
+    },
+    {
+      "h": 1,
+      "v": 10,
+      "orient": "h",
+      "def": "Existes",
+      "val": "ES"
+    },
+    {
+      "h": 4,
+      "v": 10,
+      "orient": "h",
+      "def": "Agence spatiale",
+      "val": "NASA"
+    },
+    {
+      "h": 9,
+      "v": 10,
+      "orient": "h",
+      "def": "C'est le plus important",
+      "val": "SANTE"
+    },
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "v",
+      "def": "Elevage d'hyménoptères",
+      "val": "APICULTURE"
+    },
+    {
+      "h": 2,
+      "v": 1,
+      "orient": "v",
+      "def": "Dieu des dieux",
+      "val": "JUPITER"
+    },
+    {
+      "h": 2,
+      "v": 9,
+      "orient": "v",
+      "def": "Coutumes",
+      "val": "US"
+    },
+    {
+      "h": 3,
+      "v": 1,
+      "orient": "v",
+      "def": "Limiterons",
+      "val": "OBERERONS"
+    },
+    {
+      "h": 4,
+      "v": 1,
+      "orient": "v",
+      "def": "Perte de substance dermique",
+      "val": "ULCERATION"
+    },
+    {
+      "h": 5,
+      "v": 1,
+      "orient": "v",
+      "def": "Vallée",
+      "val": "RIA"
+    },
+    {
+      "h": 5,
+      "v": 5,
+      "orient": "v",
+      "def": "Pas les autres",
+      "val": "UNS"
+    },
+    {
+      "h": 5,
+      "v": 9,
+      "orient": "v",
+      "def": "C'est comme ça !",
+      "val": "NA"
+    },
+    {
+      "h": 6,
+      "v": 1,
+      "orient": "v",
+      "def": "Non communiqué",
+      "val": "NC"
+    },
+    {
+      "h": 6,
+      "v": 4,
+      "orient": "v",
+      "def": "Prit sa chance",
+      "val": "OSA"
+    },
+    {
+      "h": 6,
+      "v": 8,
+      "orient": "v",
+      "def": "Pour le style",
+      "val": "CSS"
+    },
+    {
+      "h": 7,
+      "v": 1,
+      "orient": "v",
+      "def": "Ondes",
+      "val": "EAUX"
+    },
+    {
+      "h": 7,
+      "v": 6,
+      "orient": "v",
+      "def": "Information des acquéreurs et locataires",
+      "val": "IAL"
+    },
+    {
+      "h": 8,
+      "v": 1,
+      "orient": "v",
+      "def": "Mais aussi",
+      "val": "ET"
+    },
+    {
+      "h": 8,
+      "v": 4,
+      "orient": "v",
+      "def": "Prénom",
+      "val": "YASSER"
+    },
+    {
+      "h": 9,
+      "v": 1,
+      "orient": "v",
+      "def": "Ensembles à contenu limité",
+      "val": "SINGLETONS"
+    },
+    {
+      "h": 10,
+      "v": 2,
+      "orient": "v",
+      "def": "Volatiles",
+      "val": "OIES"
+    },
+    {
+      "h": 10,
+      "v": 7,
+      "orient": "v",
+      "def": "Grande route",
+      "val": "RN"
+    },
+    {
+      "h": 11,
+      "v": 1,
+      "orient": "v",
+      "def": "Immobile",
+      "val": "INANIME"
+    },
+    {
+      "h": 11,
+      "v": 9,
+      "orient": "v",
+      "def": "A l'intérieur",
+      "val": "EN"
+    },
+    {
+      "h": 12,
+      "v": 2,
+      "orient": "v",
+      "def": "Ville Toscane",
+      "val": "SIENA"
+    },
+    {
+      "h": 12,
+      "v": 8,
+      "orient": "v",
+      "def": "Ils nous surveillent",
+      "val": "DST"
+    },
+    {
+      "h": 13,
+      "v": 3,
+      "orient": "v",
+      "def": "Mouche qui pique",
+      "val": "TSETSE"
+    }
+  ],
+  "cells": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ]
+}

@@ -1,0 +1,482 @@
+{
+  "hcells": 12,
+  "vcells": 12,
+  "mode": "solve",
+  "data": [
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "h",
+      "def": "A ses magasins dédiés",
+      "val": "ALIMENTATION"
+    },
+    {
+      "h": 1,
+      "v": 2,
+      "orient": "h",
+      "def": "Relative à un organe des sens",
+      "val": "NASALE"
+    },
+    {
+      "h": 8,
+      "v": 2,
+      "orient": "h",
+      "def": "Arma son arc",
+      "val": "BANDA"
+    },
+    {
+      "h": 1,
+      "v": 3,
+      "orient": "h",
+      "def": "Transport collectif",
+      "val": "TROLLEYBUS"
+    },
+    {
+      "h": 1,
+      "v": 4,
+      "orient": "h",
+      "def": "Leader mondial des études de marché sur les technologies de l'information",
+      "val": "IDC"
+    },
+    {
+      "h": 5,
+      "v": 4,
+      "orient": "h",
+      "def": "Agence spatiale",
+      "val": "ESA"
+    },
+    {
+      "h": 9,
+      "v": 4,
+      "orient": "h",
+      "def": "Prénom",
+      "val": "REMI"
+    },
+    {
+      "h": 1,
+      "v": 5,
+      "orient": "h",
+      "def": "Adjectif interrogatif ou exclamatif",
+      "val": "QUELS"
+    },
+    {
+      "h": 7,
+      "v": 5,
+      "orient": "h",
+      "def": "Particule étrange",
+      "val": "KAON"
+    },
+    {
+      "h": 3,
+      "v": 6,
+      "orient": "h",
+      "def": "Largeur de tissu",
+      "val": "LE"
+    },
+    {
+      "h": 6,
+      "v": 6,
+      "orient": "h",
+      "def": "Il fait bon s'y poser",
+      "val": "COUSSIN"
+    },
+    {
+      "h": 1,
+      "v": 7,
+      "orient": "h",
+      "def": "Parfois bâté",
+      "val": "ANE"
+    },
+    {
+      "h": 5,
+      "v": 7,
+      "orient": "h",
+      "def": "Raccomode",
+      "val": "COUD"
+    },
+    {
+      "h": 10,
+      "v": 7,
+      "orient": "h",
+      "def": "Prénom",
+      "val": "EVA"
+    },
+    {
+      "h": 1,
+      "v": 8,
+      "orient": "h",
+      "def": "Satellite de Jupiter",
+      "val": "IO"
+    },
+    {
+      "h": 4,
+      "v": 8,
+      "orient": "h",
+      "def": "Ancêtres du téléphone portable",
+      "val": "TAMTAMS"
+    },
+    {
+      "h": 5,
+      "v": 9,
+      "orient": "h",
+      "def": "Alpha de la Vierge",
+      "val": "SPICA"
+    },
+    {
+      "h": 11,
+      "v": 9,
+      "orient": "h",
+      "def": "Note",
+      "val": "MI"
+    },
+    {
+      "h": 1,
+      "v": 10,
+      "orient": "h",
+      "def": "Auxilliaire",
+      "val": "ES"
+    },
+    {
+      "h": 4,
+      "v": 10,
+      "orient": "h",
+      "def": "Asiatiques",
+      "val": "COREENNES"
+    },
+    {
+      "h": 1,
+      "v": 11,
+      "orient": "h",
+      "def": "Ablette de rivière",
+      "val": "SPIRLIN"
+    },
+    {
+      "h": 9,
+      "v": 11,
+      "orient": "h",
+      "def": "Contingent africain",
+      "val": "GOUM"
+    },
+    {
+      "h": 2,
+      "v": 12,
+      "orient": "h",
+      "def": "Rend son tablier",
+      "val": "DEMISSIONNE"
+    },
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "v",
+      "def": "Adeptes des vieilleries",
+      "val": "ANTIQUAIRES"
+    },
+    {
+      "h": 2,
+      "v": 1,
+      "orient": "v",
+      "def": "Policier",
+      "val": "LARDU"
+    },
+    {
+      "h": 2,
+      "v": 7,
+      "orient": "v",
+      "def": "Théâtre",
+      "val": "NO"
+    },
+    {
+      "h": 2,
+      "v": 10,
+      "orient": "v",
+      "def": "Parti social-démocrate allemand",
+      "val": "SPD"
+    },
+    {
+      "h": 3,
+      "v": 1,
+      "orient": "v",
+      "def": "Avec au moins deux côtés égaux",
+      "val": "ISOCELE"
+    },
+    {
+      "h": 3,
+      "v": 11,
+      "orient": "v",
+      "def": "Navigateur moderne",
+      "val": "IE"
+    },
+    {
+      "h": 4,
+      "v": 1,
+      "orient": "v",
+      "def": "C'est pas bien !",
+      "val": "MAL"
+    },
+    {
+      "h": 4,
+      "v": 5,
+      "orient": "v",
+      "def": "Article",
+      "val": "LE"
+    },
+    {
+      "h": 4,
+      "v": 10,
+      "orient": "v",
+      "def": "Gestion de relation client",
+      "val": "CRM"
+    },
+    {
+      "h": 5,
+      "v": 1,
+      "orient": "v",
+      "def": "Féminines",
+      "val": "ELLES"
+    },
+    {
+      "h": 5,
+      "v": 7,
+      "orient": "v",
+      "def": "Commune des Abruzzes",
+      "val": "CASOLI"
+    },
+    {
+      "h": 6,
+      "v": 1,
+      "orient": "v",
+      "def": "Apparues",
+      "val": "NEES"
+    },
+    {
+      "h": 6,
+      "v": 6,
+      "orient": "v",
+      "def": "Inclus",
+      "val": "COMPRIS"
+    },
+    {
+      "h": 7,
+      "v": 3,
+      "orient": "v",
+      "def": "Citoyens de la République de Sakha",
+      "val": "YAKOUTIENS"
+    },
+    {
+      "h": 8,
+      "v": 1,
+      "orient": "v",
+      "def": "Acteur majeur des technologies de l’automation",
+      "val": "ABB"
+    },
+    {
+      "h": 8,
+      "v": 5,
+      "orient": "v",
+      "def": "Mépris des obstacles",
+      "val": "AUDACE"
+    },
+    {
+      "h": 9,
+      "v": 1,
+      "orient": "v",
+      "def": "Dans le Pokédex",
+      "val": "TAUROS"
+    },
+    {
+      "h": 9,
+      "v": 8,
+      "orient": "v",
+      "def": "Genre d'oiseaux-mouches",
+      "val": "MANGO"
+    },
+    {
+      "h": 10,
+      "v": 1,
+      "orient": "v",
+      "def": "Illogiques",
+      "val": "INSENSES"
+    },
+    {
+      "h": 10,
+      "v": 10,
+      "orient": "v",
+      "def": "Pas d'accord",
+      "val": "NON"
+    },
+    {
+      "h": 11,
+      "v": 1,
+      "orient": "v",
+      "def": "La force vitale pour Karl von Reichenbach",
+      "val": "OD"
+    },
+    {
+      "h": 11,
+      "v": 6,
+      "orient": "v",
+      "def": "Quatre",
+      "val": "IV"
+    },
+    {
+      "h": 11,
+      "v": 9,
+      "orient": "v",
+      "def": "Hameau de Seine-et-Marne",
+      "val": "MEUN"
+    },
+    {
+      "h": 12,
+      "v": 1,
+      "orient": "v",
+      "def": "Chauvinisme",
+      "val": "NATIONALISME"
+    }
+  ],
+  "cells": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ]
+}

@@ -1,0 +1,390 @@
+{
+  "hcells": 12,
+  "vcells": 9,
+  "mode": "solve",
+  "data": [
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "h",
+      "def": "Parfois du volant",
+      "val": "AS"
+    },
+    {
+      "h": 4,
+      "v": 1,
+      "orient": "h",
+      "def": "Homme politique français",
+      "val": "VEDRINE"
+    },
+    {
+      "h": 3,
+      "v": 2,
+      "orient": "h",
+      "def": "Quartier populaire de Paris",
+      "val": "MENILMUCHE"
+    },
+    {
+      "h": 1,
+      "v": 3,
+      "orient": "h",
+      "def": "Silence",
+      "val": "OMERTA"
+    },
+    {
+      "h": 8,
+      "v": 3,
+      "orient": "h",
+      "def": "Lance romaine",
+      "val": "PILUM"
+    },
+    {
+      "h": 3,
+      "v": 4,
+      "orient": "h",
+      "def": "Distingué",
+      "val": "ST"
+    },
+    {
+      "h": 6,
+      "v": 4,
+      "orient": "h",
+      "def": "Au Mali",
+      "val": "GAO"
+    },
+    {
+      "h": 11,
+      "v": 4,
+      "orient": "h",
+      "def": "Note",
+      "val": "RE"
+    },
+    {
+      "h": 1,
+      "v": 5,
+      "orient": "h",
+      "def": "Orientées",
+      "val": "HORIZONTALES"
+    },
+    {
+      "h": 1,
+      "v": 6,
+      "orient": "h",
+      "def": "Prénom",
+      "val": "ERIC"
+    },
+    {
+      "h": 6,
+      "v": 6,
+      "orient": "h",
+      "def": "Existe",
+      "val": "NE"
+    },
+    {
+      "h": 9,
+      "v": 6,
+      "orient": "h",
+      "def": "Enlèvement",
+      "val": "RAPT"
+    },
+    {
+      "h": 3,
+      "v": 7,
+      "orient": "h",
+      "def": "Rien",
+      "val": "NADA"
+    },
+    {
+      "h": 8,
+      "v": 7,
+      "orient": "h",
+      "def": "Fond de scène",
+      "val": "DECOR"
+    },
+    {
+      "h": 2,
+      "v": 8,
+      "orient": "h",
+      "def": "Végétalisés",
+      "val": "FEUILLUS"
+    },
+    {
+      "h": 11,
+      "v": 8,
+      "orient": "h",
+      "def": "Navigateur",
+      "val": "IE"
+    },
+    {
+      "h": 1,
+      "v": 9,
+      "orient": "h",
+      "def": "Note",
+      "val": "SI"
+    },
+    {
+      "h": 4,
+      "v": 9,
+      "orient": "h",
+      "def": "Très petit",
+      "val": "XS"
+    },
+    {
+      "h": 7,
+      "v": 9,
+      "orient": "h",
+      "def": "Union sportive",
+      "val": "US"
+    },
+    {
+      "h": 10,
+      "v": 9,
+      "orient": "h",
+      "def": "Extrêmement petit",
+      "val": "XXS"
+    },
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "v",
+      "def": "Abîmer",
+      "val": "AMOCHER"
+    },
+    {
+      "h": 2,
+      "v": 5,
+      "orient": "v",
+      "def": "Etalon",
+      "val": "OR"
+    },
+    {
+      "h": 2,
+      "v": 8,
+      "orient": "v",
+      "def": "Même pas cap !",
+      "val": "FI"
+    },
+    {
+      "h": 3,
+      "v": 2,
+      "orient": "v",
+      "def": "Ennemi public n° 1",
+      "val": "MESRINE"
+    },
+    {
+      "h": 4,
+      "v": 1,
+      "orient": "v",
+      "def": "Orientés",
+      "val": "VERTICAUX"
+    },
+    {
+      "h": 5,
+      "v": 1,
+      "orient": "v",
+      "def": "Environnement de travail",
+      "val": "ENT"
+    },
+    {
+      "h": 5,
+      "v": 7,
+      "orient": "v",
+      "def": "Parles",
+      "val": "DIS"
+    },
+    {
+      "h": 6,
+      "v": 1,
+      "orient": "v",
+      "def": "Orienté",
+      "val": "DIAGONAL"
+    },
+    {
+      "h": 7,
+      "v": 1,
+      "orient": "v",
+      "def": "La vraie vie du chat",
+      "val": "RL"
+    },
+    {
+      "h": 7,
+      "v": 4,
+      "orient": "v",
+      "def": "Mammifère",
+      "val": "ANE"
+    },
+    {
+      "h": 7,
+      "v": 8,
+      "orient": "v",
+      "def": "Parcouru",
+      "val": "LU"
+    },
+    {
+      "h": 8,
+      "v": 1,
+      "orient": "v",
+      "def": "Taxe",
+      "val": "IMPOT"
+    },
+    {
+      "h": 8,
+      "v": 7,
+      "orient": "v",
+      "def": "A payer",
+      "val": "DUS"
+    },
+    {
+      "h": 9,
+      "v": 1,
+      "orient": "v",
+      "def": "Atoll des Tuvalu",
+      "val": "NUI"
+    },
+    {
+      "h": 9,
+      "v": 5,
+      "orient": "v",
+      "def": "Aires",
+      "val": "ARES"
+    },
+    {
+      "h": 10,
+      "v": 1,
+      "orient": "v",
+      "def": "Ecole",
+      "val": "ECL"
+    },
+    {
+      "h": 10,
+      "v": 5,
+      "orient": "v",
+      "def": "Eau",
+      "val": "LAC"
+    },
+    {
+      "h": 11,
+      "v": 2,
+      "orient": "v",
+      "def": "Ancien pays de France",
+      "val": "HUREPOIX"
+    },
+    {
+      "h": 12,
+      "v": 1,
+      "orient": "v",
+      "def": "Périodes",
+      "val": "SEMESTRES"
+    }
+  ],
+  "cells": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ]
+}

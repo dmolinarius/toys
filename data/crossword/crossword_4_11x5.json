@@ -1,0 +1,190 @@
+{
+  "hcells": 11,
+  "vcells": 5,
+  "mode": "solve",
+  "data": [
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "h",
+      "def": "Travaux manuels",
+      "val": "MACRAMES"
+    },
+    {
+      "h": 10,
+      "v": 1,
+      "orient": "h",
+      "def": "Rattrape un oubli",
+      "val": "PS"
+    },
+    {
+      "h": 3,
+      "v": 2,
+      "orient": "h",
+      "def": "Ouvrît les issues",
+      "val": "AERAT"
+    },
+    {
+      "h": 9,
+      "v": 2,
+      "orient": "h",
+      "def": "Trait de lumière",
+      "val": "RAI"
+    },
+    {
+      "h": 1,
+      "v": 3,
+      "orient": "h",
+      "def": "Réclusion",
+      "val": "CONFINEMENT"
+    },
+    {
+      "h": 3,
+      "v": 4,
+      "orient": "h",
+      "def": "Pratique sans pudeur",
+      "val": "NUDISME"
+    },
+    {
+      "h": 1,
+      "v": 5,
+      "orient": "h",
+      "def": "Percée",
+      "val": "ALESEE"
+    },
+    {
+      "h": 8,
+      "v": 5,
+      "orient": "h",
+      "def": "Crochet",
+      "val": "ESSE"
+    },
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "v",
+      "def": "Joua des mandibules",
+      "val": "MACHA"
+    },
+    {
+      "h": 3,
+      "v": 1,
+      "orient": "v",
+      "def": "Appui",
+      "val": "CANNE"
+    },
+    {
+      "h": 4,
+      "v": 1,
+      "orient": "v",
+      "def": "Dénégation",
+      "val": "REFUS"
+    },
+    {
+      "h": 5,
+      "v": 1,
+      "orient": "v",
+      "def": "Sec",
+      "val": "ARIDE"
+    },
+    {
+      "h": 6,
+      "v": 1,
+      "orient": "v",
+      "def": "Toc",
+      "val": "MANIE"
+    },
+    {
+      "h": 7,
+      "v": 1,
+      "orient": "v",
+      "def": "Ils sont de plus en plus chauds",
+      "val": "ETES"
+    },
+    {
+      "h": 8,
+      "v": 3,
+      "orient": "v",
+      "def": "Madame",
+      "val": "MME"
+    },
+    {
+      "h": 9,
+      "v": 2,
+      "orient": "v",
+      "def": "Brâmes",
+      "val": "REES"
+    },
+    {
+      "h": 10,
+      "v": 1,
+      "orient": "v",
+      "def": "Dieu des pâtres",
+      "val": "PAN"
+    },
+    {
+      "h": 11,
+      "v": 1,
+      "orient": "v",
+      "def": "Localisé",
+      "val": "SITUE"
+    }
+  ],
+  "cells": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ]
+}
