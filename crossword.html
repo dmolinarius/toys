@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<!--
+crossword.html V0.0
+
+Mots croisés (crossword)
+
+-->
+<title>CrossWord</title>
+<style>
+
+/* viewport properties */
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: Consolas;
+}
+
+/* board */
+#board {
+  position: absolute;
+}
+
+/* cell size, background and border */
+.cell {
+  position: absolute;
+  background-color:white;
+  box-sizing: border-box;
+  text-align: center;
+  border-radius: 3px;
+  border: 1px solid #888;
+  box-shadow: inset 0 0 10px rgba(127,127,127,0.75);
+  text-shadow: 0 0 2px white, 0 0 2px white;
+  cursor: pointer;
+}
+.empty.cell {
+  background-color: #444;
+  cursor: default;
+}
+.active.cell {
+  background-color: #faa;
+}
+.active.empty.cell {
+  background-color: #844;
+}
+
+/* interface elements */
+.number {
+  position: absolute;
+  text-align: center;
+  text-shadow: 0 0 2px white, 0 0 2px white;
+}
+#toolbox {
+  position: absolute;
+  background: linear-gradient(#000, #222, #000);
+  border-radius: 5px;
+  box-shadow: inset 0 0 7px rgba(255,255,255,0.65);
+}
+#save_button a, #load_button span, #new_button, #lock_button, #check_button, #print_button {
+  text-decoration: none;
+  color: white;
+  padding: 0 0.2em;
+  border: 2px solid #ccc;
+  border-radius: 3px;
+  box-sizing: border-box;
+  text-shadow: -1px -1px 1px black;
+}
+#save_button, #load_button, #new_button, #lock_button, #check_button, #print_button {
+  position: absolute;
+  text-align: center;
+}
+#load_file {
+  filter:alpha(opacity: 0);
+  opacity: 0;
+  display: inline;
+  cursor: pointer;
+}
+#save_button a {
+  background: linear-gradient(#585, #585, #8a8, #585, #585);
+  display: block;
+}
+#load_button span {
+  position: absolute;
+  background: linear-gradient(#855, #855, #a88, #855, #855);
+}
+#new_button, #lock_button {
+  background: linear-gradient(#666, #666, #999, #666, #666);
+  cursor: pointer;
+}
+#check_button {
+  background: linear-gradient(#975, #975, #aaa, #975, #975);
+  cursor: pointer;
+}
+#print_button {
+  background: linear-gradient(#666, #666, #999, #666, #666);
+  cursor: pointer;
+}
+.fail {
+  color: red;
+}
+.size_button {
+  position: absolute;
+  color: #eee;
+  text-align: center;
+  padding: 0 0.2em;
+  border: 1px solid #888;
+  border-radius: 3px;
+  box-sizing: border-box;
+  text-shadow: -1px -1px 1px black;
+  background: linear-gradient(#222, #222, #888, #222, #222);
+  cursor: pointer;
+}
+.size_button.disabled {
+  opacity: 0.3;
+}
+#definitions {
+  position: absolute;
+  top: 100vh;
+  padding: 1em;
+}
+#definitions .label {
+  margin: 1.33em 0 0.5em;
+  font-weight: bold;
+}
+@media print {
+  #toolbox { display: none; }
+  #board { left: 0; top:0; border: 1px solid red; }
+}
+
+</style>
+
+<div id="board">
+ <div id="topleft_increase_h" class="size_button" title="Ajouter une colonne à gauche">🡄</div>
+ <div id="topleft_decrease_h" class="size_button" title="Supprimer une colonne à gauche">🡆</div>
+ <div id="topleft_increase_v" class="size_button" title="Ajouter une ligne en haut">🡅</div>
+ <div id="topleft_decrease_v" class="size_button" title="Supprimer une ligne en haut">🡇</div>
+
+ <div id="topright_increase_h" class="size_button" title="Ajouter une colonne à droite">🡆</div>
+ <div id="topright_decrease_h" class="size_button" title="Supprimer une colonne à droite">🡄</div>
+ <div id="topright_increase_v" class="size_button" title="Ajouter une ligne en haut">🡅</div>
+ <div id="topright_decrease_v" class="size_button" title="Supprimer une ligne en haut">🡇</div>
+
+ <div id="bottomleft_increase_h" class="size_button" title="Ajouter une colonne à gauche">🡄</div>
+ <div id="bottomleft_decrease_h" class="size_button" title="Supprimer une colonne à gauche">🡆</div>
+ <div id="bottomleft_increase_v" class="size_button" title="Ajouter une ligne en bas">🡇</div>
+ <div id="bottomleft_decrease_v" class="size_button" title="Supprimer une ligne en bas">🡅</div>
+
+ <div id="bottomright_increase_h" class="size_button" title="Ajouter une colonne à droite">🡆</div>
+ <div id="bottomright_decrease_h" class="size_button" title="Supprimer une colonne à droite">🡄</div>
+ <div id="bottomright_increase_v" class="size_button" title="Ajouter une ligne en bas">🡇</div>
+ <div id="bottomright_decrease_v" class="size_button" title="Supprimer une ligne en bas">🡅</div>
+
+ <div id="toolbox">
+   <div id="load_button"><span>load</span><input type="file" id="load_file"></input></div>
+   <div id="save_button" class="button"><a id="save_file" href="">save</a></div>
+   <div id="new_button" class="button">new</div>
+   <div id="lock_button" class="button">lock</div>
+   <div id="print_button" class="button">print</div>
+   <div id="check_button" class="button">check</div>
+ </div>
+ 
+</div>
+
+<script>
+
+/*
+** Dimensions
+*/
+let hcells = 4;
+let vcells = 4;
+
+/*
+** Crossword data model
+*/
+const data = [];
+
+/*
+** as for now mode may be 'create' or 'solve'
+*/
+function set_mode(m) {
+  let size_buttons = [...board.querySelectorAll('.size_button')];
+  mode = m;
+  if ( mode == 'solve' ) {
+    new_button.style.visibility = 'hidden';
+    lock_button.style.visibility = 'hidden';
+    print_button.style.visibility = 'visible';
+    check_button.style.visibility = 'visible';
+    size_buttons.forEach(b => b.style.visibility = 'hidden');
+  }
+  else if ( mode == 'create' ) {
+    new_button.style.visibility = 'visible';
+    lock_button.style.visibility = 'visible';
+    print_button.style.visibility = 'hidden';
+    check_button.style.visibility = 'hidden';
+    size_buttons.forEach(b => b.style.visibility = 'visible');
+  }
+}
+set_mode('solve');
+if ( window.location.hash ) set_mode(window.location.hash.substr(1));
+
+
+/*
+** Init cells
+*/
+const cells = [];
+function init_cells() {
+
+  // populate list of cells
+  for (let h=0; h < hcells; h++ ) {
+    for (let v=0; v < vcells; v++ ) {
+      cells.push({ h, v, })
+    }
+  }
+
+  // delete existing cell DOM elements if any
+  [...board.querySelectorAll('.cell')].forEach(cell => cell.parentNode.removeChild(cell));
+
+  // create cell DOM elements
+  cells.forEach(create_cell_div);
+
+  // deleting existing numbering elements if any
+  [...board.querySelectorAll('.number')].forEach(cell => cell.parentNode.removeChild(cell));
+
+
+  // Create numbering elements
+  for (let h=0; h < hcells; h++ ) {
+    let top_div = document.createElement('div');
+    top_div.className = 'top_line number';
+    top_div.innerHTML = h+1;
+    board.appendChild(top_div);
+
+    let bottom_div = document.createElement('div');
+    bottom_div.className = 'bottom_line number';
+    bottom_div.innerHTML = h+1;
+    board.appendChild(bottom_div);
+  }
+  for (let v=0; v < vcells; v++ ) {
+    let left_div = document.createElement('div');
+    left_div.className = 'left_column number';
+    left_div.innerHTML = v+1;
+    board.appendChild(left_div);
+
+    let right_div = document.createElement('div');
+    right_div.className = 'right_column number';
+    right_div.innerHTML = v+1;
+    board.appendChild(right_div);
+  }
+}
+init_cells();
+
+function create_cell_div(cell) {
+  let div = document.createElement('div');
+  div.className = 'cell';
+  div.cell = cell;
+  board.appendChild(div);
+  cell.div = div;
+}
+
+/*
+** Update view dimensions and position
+*/
+function resize() {
+  let cell_size = 0;
+  let min_cols = 12;
+  let min_rows = 10
+  let body = document.body;
+  let max_cell_width = Math.floor(window.innerWidth/Math.max(hcells+2,min_cols));
+  let max_cell_height = Math.floor(window.innerHeight/Math.max(vcells+3,min_rows));
+
+  // cell size
+  cell_size = 100*Math.min(max_cell_width,max_cell_height)/Math.min(window.innerWidth,window.innerHeight);
+  cells.forEach( cell => {
+    cell.div.style.left = cell_size*(1+cell.h) + 'vmin';
+    cell.div.style.top = cell_size*(1+cell.v) + 'vmin';
+    cell.div.style.width = cell_size+'vmin';
+    cell.div.style.height = cell_size+'vmin';
+    cell.div.style.lineHeight = cell_size+'vmin';
+    cell.div.style.fontSize = 0.45*cell_size+'vmin';
+  });
+
+ // interface elements
+ [...board.querySelectorAll('.top_line')].forEach((div,i) => {
+    div.style.left = cell_size*(1+i) + 'vmin';
+    div.style.top = '0';
+  });
+ [...board.querySelectorAll('.bottom_line')].forEach((div,i) => {
+    div.style.left = cell_size*(1+i) + 'vmin';
+    div.style.top = cell_size*(1+vcells) + 'vmin';
+  });
+ [...board.querySelectorAll('.left_column')].forEach((div,i) => {
+    div.style.left = '0';
+    div.style.top = cell_size*(1+i) + 'vmin';
+  });
+ [...board.querySelectorAll('.right_column')].forEach((div,i) => {
+    div.style.left = cell_size*(1+hcells) + 'vmin';
+    div.style.top = cell_size*(1+i) + 'vmin';
+  });
+ [...board.querySelectorAll('.number')].forEach((div,i) => {
+    div.style.width = cell_size+'vmin';
+    div.style.height = cell_size+'vmin';
+    div.style.lineHeight = cell_size+'vmin';
+    div.style.fontSize = 0.3*cell_size+'vmin';
+  });
+  
+  // board position
+  board.style.top = 'calc(0.5*(100vh - '+(vcells+3)*cell_size +'vmin))';
+  board.style.left = 'calc(0.5*(100vw - '+(hcells+2)*cell_size +'vmin))';
+
+  // toolbox
+  toolbox.style.width = cell_size*min_cols +'vmin';
+  toolbox.style.height = cell_size +'vmin';
+  toolbox.style.top = cell_size*(2+vcells) +'vmin';
+  toolbox.style.left = 0.5*(hcells+2-min_cols)*cell_size +'vmin'; ;
+
+  load_file.style.width = cell_size +'vmin';
+  load_file.style.height = 0.5*cell_size +'vmin';
+  load_button.style.left = 0.5*cell_size+'vmin';
+  load_button.style.top = 0.25*cell_size+'vmin';
+  load_button.style.fontSize = 0.25*cell_size +'vmin';
+  let span = load_button.getElementsByTagName('span')[0]
+  span.style.width = cell_size +'vmin';
+  span.style.height = 0.5*cell_size +'vmin';
+  span.style.lineHeight = 0.45*cell_size +'vmin';
+  span.style.fontSize = 0.25*cell_size +'vmin';
+
+  [...toolbox.querySelectorAll('.button')].forEach(b => {
+    b.style.width = cell_size +'vmin';
+    b.style.height = 0.5*cell_size +'vmin';
+    b.style.lineHeight = 0.45*cell_size +'vmin';
+    b.style.fontSize = 0.25*cell_size +'vmin';
+  });
+  save_button.style.left = 2.5*cell_size+'vmin';
+  save_button.style.top = 0.25*cell_size+'vmin';
+
+  new_button.style.left = 4.5*cell_size+'vmin';
+  new_button.style.top = 0.25*cell_size+'vmin';
+
+  lock_button.style.left = 6.5*cell_size+'vmin';
+  lock_button.style.top = 0.25*cell_size+'vmin';
+
+  print_button.style.left = 8.5*cell_size+'vmin';
+  print_button.style.top = 0.25*cell_size+'vmin';
+
+  check_button.style.left = 10.5*cell_size+'vmin';
+  check_button.style.top = 0.25*cell_size+'vmin';
+
+  let gap = 0.01 * cell_size;
+  [...board.querySelectorAll('.size_button')].forEach(b => {
+    b.style.width = 0.5*(1 - gap)*cell_size +'vmin';
+    b.style.height = 0.5*(1-gap)*cell_size +'vmin';
+    b.style.lineHeight = (0.5-gap)*cell_size +'vmin';
+    b.style.fontSize = 0.3*cell_size + 'vmin';
+  });
+  let delta1 = gap
+    , delta2 = 0.5 * (cell_size + delta1)
+    , delta3 = 0.5 * (cell_size - delta1)
+    , toptop = delta1 + 'vmin'
+    , topbottom = delta2 + 'vmin'
+    , leftleft = delta1 + 'vmin'
+    , leftright = delta2 + 'vmin'
+    , rightleft = (hcells+1)*cell_size + 'vmin'
+    , rightright = (hcells+1)*cell_size + delta3 + 'vmin'
+    , bottomtop = (vcells+1)*cell_size + 'vmin' 
+    , bottombottom = (vcells+1)*cell_size + delta3 + 'vmin'
+  ;
+
+  topleft_increase_h.style.left = leftleft;
+  topleft_increase_h.style.top =  toptop;
+
+  topleft_increase_v.style.left = leftright;
+  topleft_increase_v.style.top = toptop;
+
+  topleft_decrease_v.style.left = leftleft;
+  topleft_decrease_v.style.top = topbottom;
+  topleft_decrease_v.classList[vcells<5?'add':'remove']('disabled')
+
+  topleft_decrease_h.style.left = leftright;
+  topleft_decrease_h.style.top = topbottom;
+  topleft_decrease_h.classList[hcells<5?'add':'remove']('disabled')
+
+  topright_increase_h.style.left = rightright;
+  topright_increase_h.style.top = toptop;
+
+  topright_decrease_v.style.left = rightright;
+  topright_decrease_v.style.top = topbottom;
+  topright_decrease_v.classList[vcells<5?'add':'remove']('disabled')
+
+  topright_decrease_h.style.left = rightleft;
+  topright_decrease_h.style.top = topbottom;
+  topright_decrease_h.classList[hcells<5?'add':'remove']('disabled')
+
+  topright_increase_v.style.left = rightleft;
+  topright_increase_v.style.top = toptop;
+
+  bottomleft_increase_h.style.left = leftleft;
+  bottomleft_increase_h.style.top = bottomtop;
+
+  bottomleft_decrease_v.style.left = leftright;
+  bottomleft_decrease_v.style.top = bottomtop;
+  bottomleft_decrease_v.classList[vcells<5?'add':'remove']('disabled')
+
+  bottomleft_increase_v.style.left = leftleft;
+  bottomleft_increase_v.style.top = bottombottom;
+
+  bottomleft_decrease_h.style.left = leftright; 
+  bottomleft_decrease_h.style.top = bottombottom;
+  bottomleft_decrease_h.classList[hcells<5?'add':'remove']('disabled')
+
+  bottomright_increase_h.style.left = rightright;
+  bottomright_increase_h.style.top = bottomtop;
+
+  bottomright_increase_v.style.left = rightright;
+  bottomright_increase_v.style.top = bottombottom;
+
+  bottomright_decrease_v.style.left = rightleft;
+  bottomright_decrease_v.style.top = bottomtop;
+  bottomright_decrease_v.classList[vcells<5?'add':'remove']('disabled')
+
+  bottomright_decrease_h.style.left = rightleft;
+  bottomright_decrease_h.style.top = bottombottom;
+  bottomright_decrease_h.classList[hcells<5?'add':'remove']('disabled')
+}
+window.onresize = resize;
+window.onload = resize;
+
+
+/*
+** Return coords from data object, eventually with offset
+*/
+function data_coords(d,i=0) {
+  let h = d.h + ((d.orient == 'h') ? i : 0);
+  let v = d.v + ((d.orient == 'v') ? i : 0);
+  return { h, v, i: (h-1)*vcells + v-1 };
+}
+
+
+/*
+** Initialize cells and display
+*/
+function init() {
+
+  // init cell data
+  data.forEach( d => {
+    let letters = [...d.val];
+    console.log(d);
+    letters.forEach( (l,i) => {
+       let c = data_coords(d,i);
+       let h = c.h;
+       let v =  c.v;
+       let cell = cells[c.i];
+       let letter = filter_accents(l.toLowerCase());
+       if ( cell.solution && cell.solution != letter ) {
+         console.log('Data Error : '+h+','+v+' cell content "'+cell.solution+'" does not match "'+letter+'"');
+       }
+       else {
+         cell.solution = letter;
+         cell[d.orient == 'h' ? 'hdata' : 'vdata'] = d;
+       }
+    });
+  }); 
+
+  // init interface
+  cells.forEach( cell => {
+    if ( cell.solution ) {
+      let title = cell.hdata ? 'H: '+cell.hdata.def : '';
+      title +=  (cell.hdata && cell.vdata) ? ', ' : '';
+      title += cell.vdata ? 'V: '+cell.vdata.def : '';
+      cell.div.title = title;
+    }
+    else if ( mode == 'solve' && data.length) {
+      cell.div.classList.add('empty');
+    }
+  });
+
+  if ( window.definitions ) {
+    definitions.parentNode.removeChild(definitions);
+  }
+}
+if ( mode == 'solve' ) init();
+
+
+/*
+** Return uppercase of passed lowercase letter with accent removed
+*/
+function filter_accents(letter) {
+  let from = 'àéëêèïöôüûç'
+  let to =   'aeeeeioouuc';
+  return  (to[from.indexOf(letter)] || letter).toUpperCase();
+}
+
+
+/*
+** Show crossword solution
+*/
+function show_solution() {
+  cells.forEach( cell => {
+    if ( cell.solution ) {
+      cell.div.innerHTML = cell.solution;
+    }
+  });
+}
+//show_solution();
+
+/*
+** Edit mode may be null, 'hmode' or 'vmode'
+*/
+let edit_mode = null;
+let current_cell = null;
+document.body.addEventListener('click',e => {
+  if ( ! e.target.cell ) return;
+
+  if ( mode == 'solve' ) {
+    if ( e.target.cell == current_cell ) {
+      console.log('click',1,edit_mode,current_cell,e.target.cell);
+      if ( edit_mode == 'hmode' ) edit_mode = (e.target.cell.vdata ? 'vmode' : null);
+      else if ( edit_mode = 'vmode' ) edit_mode = (e.target.cell.hdata ? 'hmode' : null);
+    }
+    else {
+      console.log('click',2,edit_mode,current_cell,e.target.cell);
+      if ( edit_mode == 'hmode' && !e.target.cell.hdata ) edit_mode = (e.target.cell.vdata ? 'vmode' : null);
+      else if ( edit_mode == 'vmode' && !e.target.cell.vdata ) edit_mode = (e.target.cell.hdata ? 'hmode' : null);
+      else if ( edit_mode == null ) edit_mode = (e.target.cell.hdata ? 'hmode' : e.target.cell.vdata ? 'vmode' : null);
+      current_cell = e.target.cell;
+    }
+  }
+  if ( mode == 'create' ) {
+    if ( !current_cell || e.target.cell == current_cell ) {
+      console.log('click',3,edit_mode,current_cell,e.target.cell);
+      edit_mode = (edit_mode == 'hmode' ? 'vmode' : 'hmode');
+    }
+    else {
+      console.log('click',4,edit_mode,current_cell,e.target.cell);
+    }
+    current_cell = e.target.cell;
+  }
+  highlight();
+});
+
+
+/*
+** Highlight current word
+*/
+let current_data = null;
+let current_index = null;
+function highlight() {
+  if ( edit_mode ) {
+    if ( mode == 'solve' ) {
+      let d = current_cell[edit_mode == 'hmode' ? 'hdata' : 'vdata'];
+      if ( current_data && d != current_data ) unhighlight();
+
+      // highlight new current_data
+      current_data = d;
+      if ( current_data ) {
+        let cell_index = cells.indexOf(current_cell);
+        current_index = null;
+        for ( let i=0; i < current_data.val.length; i++ ) {
+          let c = data_coords(current_data,i);
+          if ( c.i >= cell_index ) {
+            cells[c.i].div.classList.add('active');
+            if ( current_index === null ) current_index = i;
+          }
+          else {
+            cells[c.i].div.classList.remove('active');
+          }
+        }
+      }
+    }
+    else if ( mode == 'create' ) {
+      let cell_index = cells.indexOf(current_cell);
+      let from = (edit_mode == 'hmode') ? current_cell.h : current_cell.v;
+      let to = (edit_mode == 'hmode') ? hcells : vcells;
+
+      unhighlight();
+      let s = { h:current_cell.h+1, v:current_cell.v+1, orient:edit_mode.substr(0,1) };
+      console.log(from,to,s,data_coords(s));
+      for ( let i = 0; i < to-from; i++ ) {
+          let c = data_coords(s,i);
+          cells[c.i].div.classList.add('active');
+      }
+    }
+  }
+  else if ( current_data ) unhighlight();
+}
+
+
+/*
+** Unhighlight currently highlighted cells
+*/
+function unhighlight() {
+  if ( mode == 'solve' ) {
+    for ( let i=0; i < current_data.val.length; i++ ) {
+      let c = data_coords(current_data,i);
+      cells[c.i].div.classList.remove('active');
+    }
+  }
+  else if ( mode == 'create' ) {
+    cells.forEach(cell => cell.div.classList.remove('active') );
+  }
+}
+
+
+/*
+** Edit content
+*/
+document.body.addEventListener('keydown', e => {
+  if ( mode == 'solve' ) {
+    if ( current_data ) {
+      let letter = filter_accents(e.key);
+      if ( /^[A-Z]$/.test(letter) ) {
+        current_cell.div.innerHTML = letter; 
+        if ( current_cell.div.innerHTML == current_cell.solution ) {
+          current_cell.div.classList.remove('fail');
+        }
+        console.log(current_data.val,current_index,current_data.val.length);
+        if ( current_index < current_data.val.length-1) {
+          current_index += 1;
+          current_cell = cells[data_coords(current_data,current_index).i];
+          highlight();
+          console.log('current_data',current_data);
+        }
+      }
+    }
+  }
+  else if ( mode == 'create' ) {
+    let cell_index = null;
+    if ( current_cell ) {
+      let letter = filter_accents(e.key);
+      if ( /^[A-Z]$/.test(letter) ) {
+        cell_index = cells.indexOf(current_cell);
+        current_cell.div.innerHTML = letter; 
+        current_cell.div.classList.remove('empty');
+      }
+      else if ( e.key == ' ' ) {
+        cell_index = cells.indexOf(current_cell);
+        current_cell.div.innerHTML = ' ';
+        current_cell.div.classList.toggle('empty'); 
+      }
+      else if ( e.key == 'Backspace' ) {
+        cell_index = cells.indexOf(current_cell);
+        if ( edit_mode == 'hmode' && current_cell.h > 0 ) current_cell = cells[cell_index-vcells];
+        if ( edit_mode == 'vmode' && current_cell.v > 0 ) current_cell = cells[cell_index-1];
+        highlight();
+        cell_index = null;
+        e.preventDefault();
+      }
+      else if ( e.key == 'Delete' ) {
+        cell_index = cells.indexOf(current_cell);
+        current_cell.div.innerHTML = '';
+        current_cell.div.classList.remove('empty'); 
+        cell_index = null;
+      }
+      else if ( e.key == 'ArrowRight' ) {
+        cell_index = cells.indexOf(current_cell);
+        if ( current_cell.h < hcells-1 ) current_cell = cells[cell_index+vcells];
+        highlight();
+        cell_index = null;
+      }
+      else if ( e.key == 'ArrowLeft' ) {
+        cell_index = cells.indexOf(current_cell);
+        if ( current_cell.h > 0 ) current_cell = cells[cell_index-vcells];
+        highlight();
+        cell_index = null;
+      }
+      else if ( e.key == 'ArrowUp' ) {
+        cell_index = cells.indexOf(current_cell);
+        if ( current_cell.v > 0 ) current_cell = cells[cell_index-1];
+        highlight();
+        cell_index = null;
+      }
+      else if ( e.key == 'ArrowDown' ) {
+        cell_index = cells.indexOf(current_cell);
+        if ( current_cell.v < vcells-1 ) current_cell = cells[cell_index+1];
+        highlight();
+        cell_index = null;
+      }
+      else {
+        console.log(e);
+      }
+      if ( cell_index !== null ) {
+        if ( edit_mode == 'hmode' && current_cell.h < hcells-1 ) current_cell = cells[cell_index+vcells];
+        if ( edit_mode == 'vmode' && current_cell.v < vcells-1 ) current_cell = cells[cell_index+1];
+        highlight();
+      }
+    }
+  }
+});
+
+
+/*
+** Save state to JSON file
+*/
+function save(e) {
+  if ( mode == 'create' ) update_data();
+  let info = get_state()
+
+    // would result in ASCII-encoded file
+    //, uri = 'data:application/json;base64,' + btoa(JSON.stringify(info))
+
+    , uri = 'data:application/json;UTF-8,' + encodeURIComponent(JSON.stringify(info,null,2))
+    , now = new Date()
+    , details = [now.getMonth()+1,now.getDate(),now.getHours(),now.getMinutes(),now.getSeconds()]
+    , filename = 'crossword_' + hcells + 'x' + vcells + '.'
+        + now.getFullYear()
+        + details.map(x => ("0"+x).slice(-2)).join('')
+        +'.json'
+  ;
+  e.target.href = uri;
+  e.target.download = filename;
+}
+save_file.addEventListener('click',save);
+
+
+/*
+** Initialize data from interface
+*/
+function update_data() {
+
+  // strip down data
+  data.length = 0;
+
+  // get horizontal data
+  for (let v=0; v < vcells; v++ ) {
+    let d = null;
+    for (let h=0; h < hcells; h++ ) {
+      if ( d == null ) d = { h:h+1, v:v+1, orient:'h', def:'', val:'' };
+      let cell = cells[data_coords(d,h+1-d.h).i];
+      let c = cell.div.innerHTML;
+      if ( c && c != ' ' ) d.val += c;
+      else {
+        if ( d.val.length > 1 ) data.push(d);
+        d = null;
+      }
+    }
+    if ( d && d.val.length > 1 ) data.push(d);
+  }
+
+  // get vertical data
+  for (let h=0; h < hcells; h++ ) {
+    let d = null;
+    for (let v=0; v < vcells; v++ ) {
+      if ( d == null ) d = { h:h+1, v:v+1, orient:'v', def:'', val:'' };
+      let cell = cells[data_coords(d,v+1-d.v).i];
+      let c = cell.div.innerHTML;
+      if ( c && c != ' ') d.val += c;
+      else {
+        if ( d.val.length > 1 ) data.push(d);
+        d = null;
+      }
+    }
+    if ( d && d.val.length > 1 ) data.push(d);
+  }
+}
+
+/*
+** Return current state
+*/
+function get_state() {
+  return {
+    hcells, vcells, mode, data, 
+    cells: cells.map(c => c.div.innerHTML)
+  };
+}
+
+
+/*
+** Load state from JSON file
+*/
+function load(e) {
+  let file = e.target.files[0];
+  if ( file.type == 'application/json' ) {
+    let reader = new FileReader();
+    reader.onload = e => {
+       let result = e.target.result;
+       console.log('result',result);
+       let parsed = JSON.parse(result);
+       console.log('parsed',parsed);
+       set_state(JSON.parse(e.target.result))
+    };
+    reader.readAsText(file);
+
+    // if file is not UTF-8 encoded
+    // reader.readAsText(file,'ISO-8859-1');
+  }
+  console.log('loaded',file);
+}
+load_file.addEventListener('change',load);
+
+
+/*
+** Set state
+*/
+function set_state(info) {
+  hcells = info.hcells;
+  vcells = info.vcells;
+  set_mode(info.mode);
+
+  console.log(info);
+
+  data.length = 0;
+  info.data.forEach(d => data.push(d));
+
+  cells.length = 0;
+  init_cells();
+
+  info.cells.forEach((c,i) => {
+    cells[i].div.innerHTML = c;
+    if ( c == ' ' ) cells[i].div.classList.add('empty');
+  });
+  resize();
+
+  edit_mode = null;
+  current_cell = null;
+  current_data = null;
+  current_index = null;
+
+  init();
+}
+
+/*
+** Restart from scratch
+*/
+function create_new() {
+  hcells = 4;
+  vcells = 4;
+  set_mode('create');
+  data.length = 0;
+  cells.length = 0;
+  init_cells();
+  resize();
+  edit_mode = null;
+  current_cell = null;
+  current_data = null;
+  current_index = null;
+}
+new_button.addEventListener('click',create_new);
+
+
+/*
+** Enter solve mode and lock editing
+*/
+function lock() {
+  set_mode('solve');
+  update_data();
+  cells.length = 0;
+  init_cells();
+  resize();
+  edit_mode = null;
+  current_cell = null;
+  current_data = null;
+  current_index = null;
+  init();
+}
+lock_button.addEventListener('click',lock);
+
+
+/*
+** Check proposed content
+*/
+function check() {
+  cells.forEach( cell => {
+    if ( cell.div.innerHTML && cell.div.innerHTML != cell.solution ) {
+      cell.div.classList.add('fail');
+    }
+  });
+}
+check_button.addEventListener('click',check);
+
+
+/*
+** Add new bottom line of cells
+*/
+function push_line() {
+
+  // populate list of cells
+  for (let h=0, v=vcells, index=v; h < hcells; h++, index += vcells+1 ) {
+    let cell = {h, v} 
+    cells.splice(index,0,cell);
+    create_cell_div(cell);
+  }
+  vcells += 1;
+  console.log(vcells,cells);
+
+  addLineNumbers();
+  resize();
+}
+bottomleft_increase_v.addEventListener('click',push_line);
+bottomright_increase_v.addEventListener('click',push_line);
+
+
+/*
+** Remove bottom line of cells
+*/
+function pop_line() {
+  if ( vcells < 5 ) return;
+
+  // update list of cells
+  for (let h=0, index=vcells-1; h < hcells; h++, index += vcells-1 ) {
+    board.removeChild(cells[index].div);
+    cells.splice(index,1);
+  }
+  vcells -= 1;
+
+  removeLineNumbers();
+  resize();
+}
+bottomleft_decrease_v.addEventListener('click',pop_line);
+bottomright_decrease_v.addEventListener('click',pop_line);
+
+
+/*
+** Add top line of cells
+*/
+function unshift_line() {
+
+  // populate list of cells
+  for (let h=0, index=0; h < hcells; h++, index += vcells+1 ) {
+    let cell = {h, v:0}; 
+    cells.splice(index,0,cell);
+    for ( let v=1; v < vcells+1; v++ ) {
+      cells[index+v].v = v;
+    }
+    create_cell_div(cell);
+  }
+  vcells += 1;
+  console.log(vcells,cells);
+
+  addLineNumbers();
+  resize();
+}
+topleft_increase_v.addEventListener('click',unshift_line);
+topright_increase_v.addEventListener('click',unshift_line);
+
+
+/*
+** Remove bottom line of cells
+*/
+function shift_line() {
+  if ( vcells < 5 ) return;
+
+  // update list of cells
+  for (let h=0, index=0; h < hcells; h++, index += vcells-1 ) {
+    board.removeChild(cells[index].div);
+    cells.splice(index,1);
+    for ( let v=0; v < vcells-1; v++ ) {
+      cells[index+v].v = v;
+    }
+  }
+  vcells -= 1;
+  console.log(vcells,cells);
+
+  removeLineNumbers();
+  resize();
+}
+topleft_decrease_v.addEventListener('click',shift_line);
+topright_decrease_v.addEventListener('click',shift_line);
+
+
+/*
+** Add right columns of cells
+*/
+function push_column() {
+
+  // populate list of cells
+  for (let v=0; v < vcells; v++ ) {
+    let cell = {h:hcells, v} 
+    cells.push(cell);
+    create_cell_div(cell);
+  }
+  hcells += 1;
+  console.log(hcells,cells);
+
+  addColumnNumbers();
+  resize();
+}
+topright_increase_h.addEventListener('click',push_column);
+bottomright_increase_h.addEventListener('click',push_column);
+
+
+/*
+** Remove right column of cells
+*/
+function pop_column() {
+  if ( hcells < 5 ) return;
+
+  // update list of cells
+  for (let v=0; v < vcells; v++ ) {
+    let cell = cells.pop();
+    board.removeChild(cell.div);
+  }
+  hcells -= 1;
+
+  removeColumnNumbers();
+  resize();
+}
+topright_decrease_h.addEventListener('click',pop_column);
+bottomright_decrease_h.addEventListener('click',pop_column);
+
+
+/*
+** Add left column of cells
+*/
+function unshift_column() {
+
+  // populate list of cells
+  cells.forEach(c => c.h += 1);
+  for (let v=vcells-1; v > -1; v-- ) {
+    let cell = {h:0, v} 
+    cells.unshift(cell);
+    create_cell_div(cell);
+  }
+  hcells += 1;
+  console.log(hcells,cells);
+
+  addColumnNumbers();
+  resize();
+}
+topleft_increase_h.addEventListener('click',unshift_column);
+bottomleft_increase_h.addEventListener('click',unshift_column);
+
+
+/*
+** Remove left column of cells
+*/
+function shift_column() {
+  if ( hcells < 5 ) return;
+
+  // update list of cells
+  cells.forEach(c => {
+     if ( c.h ) c.h -= 1;
+     else board.removeChild(c.div);
+  });
+  for (let v=0; v < vcells; v++ ) { cells.shift(); };
+  hcells -= 1;
+
+  removeColumnNumbers();
+  resize();
+}
+topleft_decrease_h.addEventListener('click',shift_column);
+bottomleft_decrease_h.addEventListener('click',shift_column);
+
+
+/*
+** Number one more line
+*/
+function addLineNumbers() {
+  // numbering
+  let left_div = document.createElement('div');
+  left_div.className = 'left_column number';
+  left_div.innerHTML = vcells;
+  appendAfter(board, [...board.querySelectorAll('.left_column')].pop(), left_div);
+
+  let right_div = document.createElement('div');
+  right_div.className = 'right_column number';
+  right_div.innerHTML = vcells
+  appendAfter(board, [...board.querySelectorAll('.right_column')].pop(), right_div);
+}
+
+
+/*
+** Number one less line
+*/
+function removeLineNumbers() {
+  board.removeChild([...board.querySelectorAll('.left_column')].pop());
+  board.removeChild([...board.querySelectorAll('.right_column')].pop());
+}
+
+
+/*
+** Number one more column
+*/
+function addColumnNumbers() {
+  // numbering
+  let top_div = document.createElement('div');
+  top_div.className = 'top_line number';
+  top_div.innerHTML = hcells;
+  appendAfter(board, [...board.querySelectorAll('.top_line')].pop(), top_div);
+
+  let bottom_div = document.createElement('div');
+  bottom_div.className = 'bottom_line number';
+  bottom_div.innerHTML = hcells
+  appendAfter(board, [...board.querySelectorAll('.bottom_line')].pop(), bottom_div);
+}
+
+
+/*
+** NUmber one less column
+*/
+function removeColumnNumbers() {
+  board.removeChild([...board.querySelectorAll('.top_line')].pop());
+  board.removeChild([...board.querySelectorAll('.bottom_line')].pop());
+}
+
+
+/*
+** Append given element after given sibling within given parent
+*/
+function appendAfter(parent,sibling,element) {
+  let next = sibling.nextElementSibling;
+  if ( next ) {
+    parent.insertBefore(element,next);
+  }
+  else {
+    board.appendChild(element);
+  }
+}
+
+/*
+** Prepare to print
+*/
+function print() {
+
+  // prepare interface
+  let definitions = document.createElement('div')
+    , horizontal = document.createElement('div')
+    , vertical = document.createElement('div')
+    , hlabel = document.createElement('div')
+    , vlabel = document.createElement('div')
+  ;
+  definitions.id = 'definitions';
+
+  hlabel.textContent = 'Horizontalement : ';
+  hlabel.className = 'label';
+  horizontal.appendChild(hlabel);
+
+  vlabel.textContent = 'Verticalement : ';
+  vlabel.className = 'label';
+  vertical.appendChild(vlabel);
+
+  definitions.appendChild(horizontal);
+  definitions.appendChild(vertical);
+
+  console.log(data);
+
+  // create definition text elements
+  // data is expected to be properly sorted
+  let index = 0;
+  data.forEach( d => {
+    let span = document.createElement('span')
+      , text = ''
+    ;
+    if ( d.orient == 'h' ) {
+      if ( d.v != index ) {
+         text += ' ' + d.v + '. '; 
+         index = d.v;
+      }
+      span.textContent = text + d.def + ' - ';
+      horizontal.appendChild(span);
+    }
+    else if ( d.orient == 'v' ) {
+      if ( d.h != index ) {
+         text += ' ' + d.h + '. '; 
+         index = d.h;
+      }
+      span.textContent = text + d.def + ' - ';
+      vertical.appendChild(span);
+    }
+  });
+
+  // show definitions
+  document.body.appendChild(definitions);
+}
+print_button.addEventListener('click',print);
+
+// TODO - add print media query CSS rules
+// TODO - use dblclick in create mode to add definition (implies a new mode... named edit?)
+</script>

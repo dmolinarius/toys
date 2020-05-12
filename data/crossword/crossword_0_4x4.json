@@ -1,0 +1,81 @@
+{
+  "hcells": 4,
+  "vcells": 4,
+  "mode": "solve",
+  "data": [
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "h",
+      "def": "Souvent pauvre",
+      "val": "HERE"
+    },
+    {
+      "h": 1,
+      "v": 2,
+      "orient": "h",
+      "def": "Il en faut, mais pas trop",
+      "val": "AMIS"
+    },
+    {
+      "h": 1,
+      "v": 3,
+      "orient": "h",
+      "def": "Cobalt",
+      "val": "CO"
+    },
+    {
+      "h": 1,
+      "v": 4,
+      "orient": "h",
+      "def": "Il pèse",
+      "val": "KILO"
+    },
+    {
+      "h": 1,
+      "v": 1,
+      "orient": "v",
+      "def": "Modification informatique",
+      "val": "HACK"
+    },
+    {
+      "h": 2,
+      "v": 1,
+      "orient": "v",
+      "def": "Emotion",
+      "val": "EMOI"
+    },
+    {
+      "h": 3,
+      "v": 1,
+      "orient": "v",
+      "def": "A manifesté du plaisir",
+      "val": "RI"
+    },
+    {
+      "h": 4,
+      "v": 1,
+      "orient": "v",
+      "def": "Entreprise pétrolière",
+      "val": "ESSO"
+    }
+  ],
+  "cells": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ]
+}
