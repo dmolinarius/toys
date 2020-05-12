@@ -12,6 +12,7 @@ A directory holding small javascript webapps within single html files.
 * [crossword.html](http://dmolinarius.github.io/toys/crossword.html) - Create and solve crosswords. Save your creations, and solutions, even if partially completed !
 
   "load" button allows to load a crossword json file from your disk or network, with a puzzle to solve.
+  Some of them are available in the data/crossword directory (in french, sorry for that).
   Use "save" button to generate a json crossword file from your work.
 
   In solve mode, definitions popup while hovering cells.
