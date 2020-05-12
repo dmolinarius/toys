@@ -9,6 +9,25 @@ A directory holding small javascript webapps within single html files.
   Select a local image to use as a background (warning big images may considerably slow down your browser).
   Play by clicking on an empty cell neighbour to move it.
 
+* [crossword.html](http://dmolinarius.github.io/toys/crossword.html) - Create and solve crosswords. Save your creations, and solutions, even if partially completed !
+
+  "load" button allows to load a crossword json file from your disk or network, with a puzzle to solve.
+  Use "save" button to generate a json crossword file from your work.
+
+  In solve mode, definitions popup while hovering cells.
+    Clicking a cell allows to enter text. Clicking twice toggles between horizontal and vertical text.
+    Also supported are backspace, delete, and arrow keys.
+    "print" button adds definitions below visible viewport (scroll to see them),
+      allowing to print puzzle including definitions using your browser print facility.
+    "check" button compares the text you filled-in to solution, and highlights errors in red.
+
+  You may also reload the html file with hashtag #create to enter create mode.
+  In create mode, arrow buttons in the corners of the board allow adding more lines or columns.
+    The space key creates a black cell.
+    "new" button starts from scratch (beware : no safeguard unless you saved previous edits). 
+    Once puzzle fully created, "lock" button enters solve mode. Use "lock" before "save" to create a playable crossword json file.  
+  
+
 * [css-properties.html](http://dmolinarius.github.io/toys/css-properties.html) - Interactively play with an HTML span element CSS properties
 
   Update properties at will, and export obtained CSS or locally save work in a JSON file. Work may be retrieved by reloading the JSON file. Try for example to load
