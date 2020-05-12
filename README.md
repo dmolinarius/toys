@@ -26,7 +26,7 @@ A directory holding small javascript webapps within single html files.
   In create mode, arrow buttons in the corners of the board allow adding more lines or columns.
     The space key creates a black cell.
     "new" button starts from scratch (beware : no safeguard unless you saved previous edits). 
-    Once puzzle fully created, "lock" button enters solve mode. Use "lock" before "save" to create a playable crossword json file.  
+    Once puzzle fully created, "lock" button enters solve mode. Use "lock" before "save" to create a json file. For now, the definitions need to be entered manually, using your favorite editor, and that's it ! Your may now load your file to solve the puzzle.  
   
 
 * [css-properties.html](http://dmolinarius.github.io/toys/css-properties.html) - Interactively play with an HTML span element CSS properties
